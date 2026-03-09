@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perpustakaan Digital MTs N 1 Bandar Lampung</title>
+    <!-- Boxicons (Free Icons) -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Chart.js for Dashboard Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- ======== LOGIN VIEW ======== -->
+    <section id="login-view" class="view-section active">
+        <div class="login-container">
+            <div class="login-card glass-panel">
+                <div class="login-header brand-header">
+                    <img src="img/logo.png" alt="Logo" class="app-logo-img login-logo">
+                    <div class="brand-titles">
+                        <h2 class="app-title-full">Perpustakaan Digital</h2>
+                        <p class="app-school-name">MTs N 1 Bandar Lampung</p>
+                    </div>
+                </div>
+                <form id="login-form">
+                    <div class="input-group">
+                        <i class='bx bx-user'></i>
+                        <input type="text" id="username" placeholder="Username" required>
+                    </div>
+                    <div class="input-group">
+                        <i class='bx bx-lock-alt'></i>
+                        <input type="password" id="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Masuk</button>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <span style="font-size: 14px; color: var(--text-muted);">Atau</span>
+                    </div>
+                    <button type="button" id="login-siswa-btn" class="btn btn-success btn-block"
+                        style="margin-top: 15px; font-size: 14px;">
+                        <i class='bx bx-user-circle'></i> Masuk sebagai Siswa
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======== MAIN APP VIEW ======== -->
+    <section id="app-view" class="view-section" style="display: none;">
+
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header brand-header">
+                <img src="img/logo.png" alt="Logo" class="app-logo-img">
+                <span class="logo-name app-title-short">E-Perpus</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" data-target="dashboard" class="active"><i class='bx bx-grid-alt'></i><span
+                            class="link-name">Dashboard</span></a></li>
+                <li class="admin-only"><a href="#" data-target="data-siswa"><i class='bx bx-user'></i><span
+                            class="link-name">Data
+                            Siswa</span></a></li>
+                <li class="admin-only"><a href="#" data-target="data-buku"><i class='bx bx-book'></i><span
+                            class="link-name">Data
+                            Buku</span></a></li>
+                <li><a href="#" data-target="peminjaman"><i class='bx bx-transfer-alt'></i><span
+                            class="link-name">Peminjaman</span></a></li>
+                <li><a href="#" data-target="pengembalian"><i class='bx bx-check-circle'></i><span
+                            class="link-name">Pengembalian</span></a></li>
+                <li class="admin-only"><a href="#" data-target="rekapan"><i class='bx bx-file'></i><span
+                            class="link-name">Rekapan
+                            Data</span></a></li>
+                <li class="admin-only"><a href="#" data-target="kartu-anggota"><i class='bx bx-id-card'></i><span
+                            class="link-name">Kartu Anggota</span></a></li>
+                <li class="admin-only"><a href="#" data-target="pengaturan"><i class='bx bx-cog'></i><span
+                            class="link-name">Pengaturan</span></a></li>
+            </ul>
+
+            <div class="sidebar-bottom">
+                <a href="#" id="logout-btn">
+                    <i class='bx bx-log-out'></i>
+                    <span class="link-name">Logout</span>
+                </a>
+                <div class="sidebar-footer">
+                    <span class="footer-icon">👨‍💻</span>
+                    <span class="footer-text">Developed by Rudi Hen</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div class="toggle-sidebar">
+                        <i class='bx bx-menu'></i>
+                    </div>
+                    <div class="topbar-logo brand-header">
+                        <img src="img/logo.png" alt="Logo" class="app-logo-img">
+                        <div class="brand-titles">
+                            <span class="app-title-full"
+                                style="display: block; font-weight: 700; font-size: 16px;">Perpustakaan Digital</span>
+                            <span class="app-school-name"
+                                style="display: block; font-size: 12px; color: var(--text-muted);">MTs N 1 Bandar
+                                Lampung</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-profile">
+                    <div class="user-info">
+                        <span class="user-name">Adminstrator</span>
+                        <span class="user-role">Pustakawan</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Profile"
+                        class="avatar">
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="page-section active">
+                    <div class="page-header">
+                        <p
+                            style="font-size: 16px; color: var(--text-muted); margin-bottom: 4px; font-weight: 700; font-style: italic; display: flex; align-items: center; gap: 10px;">
+                            <img src="img/logo.png" alt="Logo" class="app-logo-img" style="width: 30px; height: 30px;">
+                            Selamat Datang di <span class="app-school-name">Perpustakaan MTs N 1 Bandar Lampung</span>
+                        </p>
+                        <h1 class="app-title-full">Dashboard</h1>
+                        <p>Statistik dan Ikhtisar Perpustakaan</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon bg-blue"><i class='bx bx-book'></i></div>
+                            <div class="stat-details">
+                                <h3>Total Buku</h3>
+                                <p class="stat-value" id="stat-total-buku">1,245</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon bg-green"><i class='bx bx-user-check'></i></div>
+                            <div class="stat-details">
+                                <h3>Total Siswa</h3>
+                                <p class="stat-value" id="stat-total-siswa">850</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon bg-orange"><i class='bx bx-transfer-alt'></i></div>
+                            <div class="stat-details">
+                                <h3>Buku Dipinjam</h3>
+                                <p class="stat-value" id="stat-dipinjam">120</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon bg-purple"><i class='bx bx-error-circle'></i></div>
+                            <div class="stat-details">
+                                <h3>Terlambat</h3>
+                                <p class="stat-value" id="stat-terlambat">15</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="chart-card glass-panel">
+                            <h3>Statistik Peminjaman (Bulanan)</h3>
+                            <canvas id="peminjamanChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Siswa Section -->
+                <div id="data-siswa" class="page-section" style="display: none;">
+                    <div class="page-header flex-between">
+                        <div>
+                            <h1>Data Siswa</h1>
+                            <p>Kelola data anggota perpustakaan</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-outline" onclick="downloadTemplateSiswa()">
+                                <i class='bx bx-download'></i> Template Excel
+                            </button>
+                            <input type="file" id="upload-siswa-input" accept=".xlsx, .xls, .csv"
+                                style="display: none;">
+                            <button class="btn btn-primary"
+                                onclick="document.getElementById('upload-siswa-input').click()">
+                                <i class='bx bx-upload'></i> Upload Excel
+                            </button>
+                            <button class="btn btn-primary" onclick="openModal('modal-siswa')">
+                                <i class='bx bx-plus'></i> Tambah Manual
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container glass-panel">
+                        <table id="table-siswa">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Siswa</th>
+                                    <th>Kelas</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Data Buku Section -->
+                <div id="data-buku" class="page-section" style="display: none;">
+                    <div class="page-header flex-between">
+                        <div>
+                            <h1>Data Buku</h1>
+                            <p>Inventaris koleksi buku</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-outline" onclick="downloadTemplateBuku()">
+                                <i class='bx bx-download'></i> Template Excel
+                            </button>
+                            <input type="file" id="upload-buku-input" accept=".xlsx, .xls, .csv" style="display: none;">
+                            <button class="btn btn-primary"
+                                onclick="document.getElementById('upload-buku-input').click()">
+                                <i class='bx bx-upload'></i> Upload Excel
+                            </button>
+                            <button class="btn btn-primary" onclick="openModal('modal-buku')">
+                                <i class='bx bx-plus'></i> Tambah Manual
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container glass-panel">
+                        <table id="table-buku">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Judul Buku</th>
+                                    <th>Pengarang</th>
+                                    <th>Penerbit</th>
+                                    <th>Tahun Terbit</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Peminjaman Section -->
+                <div id="peminjaman" class="page-section" style="display: none;">
+                    <div class="page-header flex-between">
+                        <div>
+                            <h1>Daftar Peminjaman</h1>
+                            <p>Catatan transaksi peminjaman buku</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-outline"
+                                onclick="downloadExcel('table-peminjaman', 'Laporan_Peminjaman')">
+                                <i class='bx bx-download'></i> Unduh Excel
+                            </button>
+                            <button class="btn btn-outline"
+                                onclick="printTable('table-peminjaman', 'Daftar Peminjaman')">
+                                <i class='bx bx-printer'></i> Cetak
+                            </button>
+                            <button class="btn btn-primary" onclick="openModal('modal-peminjaman')">
+                                <i class='bx bx-plus'></i> Tambah Manual
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container glass-panel">
+                        <table id="table-peminjaman">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Judul Buku</th>
+                                    <th>Pengarang</th>
+                                    <th>Penerbit</th>
+                                    <th>Tahun</th>
+                                    <th>Jumlah</th>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Tgl Kembali</th>
+                                    <th>Siswa</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Pengembalian Section -->
+                <div id="pengembalian" class="page-section" style="display: none;">
+                    <div class="page-header flex-between">
+                        <div>
+                            <h1>Daftar Pengembalian</h1>
+                            <p>Catatan transaksi pengembalian buku</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-outline"
+                                onclick="downloadExcel('table-pengembalian', 'Laporan_Pengembalian')">
+                                <i class='bx bx-download'></i> Unduh Excel
+                            </button>
+                            <button class="btn btn-outline"
+                                onclick="printTable('table-pengembalian', 'Daftar Pengembalian')">
+                                <i class='bx bx-printer'></i> Cetak
+                            </button>
+                            <button class="btn btn-primary" onclick="openModal('modal-pengembalian')">
+                                <i class='bx bx-plus'></i> Tambah Manual
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container glass-panel">
+                        <table id="table-pengembalian">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Judul Buku</th>
+                                    <th>Pengarang</th>
+                                    <th>Penerbit</th>
+                                    <th>Tahun</th>
+                                    <th>Jumlah</th>
+                                    <th>Tgl Kembali</th>
+                                    <th>Siswa</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <!-- Pengaturan Section -->
+                <div id="pengaturan" class="page-section" style="display: none;">
+                    <div class="page-header">
+                        <h1>Pengaturan Aplikasi</h1>
+                        <p>Kelola identitas dan tampilan aplikasi</p>
+                    </div>
+                    <div class="glass-panel" style="padding: 30px; max-width: 800px; margin: 0 auto;">
+                        <form id="form-settings">
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label>Judul Aplikasi</label>
+                                    <input type="text" id="set-app-title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nama Sekolah</label>
+                                    <input type="text" id="set-school-name" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Alamat Sekolah</label>
+                                <textarea id="set-school-address" rows="2"></textarea>
+                            </div>
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label>Website Sekolah</label>
+                                    <input type="url" id="set-school-web">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nama Kepala Madrasah</label>
+                                    <input type="text" id="set-headmaster">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Nama Kepala Perpustakaan</label>
+                                <input type="text" id="set-librarian">
+                            </div>
+                            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="form-group">
+                                    <label>Logo Sekolah</label>
+                                    <input type="file" id="set-logo-input" accept="image/*">
+                                    <small>Muncul di sidebar & laporan</small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Banner Halaman Login</label>
+                                    <input type="file" id="set-banner-input" accept="image/*">
+                                    <small>Muncul di background login</small>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; text-align: right;">
+                                <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rekapan Section -->
+            <div id="rekapan" class="page-section" style="display: none;">
+                <div class="page-header flex-between">
+                    <div>
+                        <h1>Rekapan Data</h1>
+                        <p>Laporan komprehensif bulanan & tahunan</p>
+                    </div>
+                    <div class="action-buttons">
+                        <select id="filter-rekapan" class="filter-select">
+                            <option value="bulan">Per Bulan</option>
+                            <option value="tahun">Per Tahun</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="downloadExcel('table-rekapan', 'Laporan_Rekapan')">
+                            <i class='bx bx-download'></i> Unduh Excel
+                        </button>
+                        <button class="btn btn-primary" onclick="printTable('table-rekapan', 'Laporan Rekapan Data')">
+                            <i class='bx bx-printer'></i> Cetak
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container glass-panel">
+                    <table id="table-rekapan">
+                        <thead>
+                            <tr>
+                                <th>Periode</th>
+                                <th>Total Peminjaman</th>
+                                <th>Total Pengembalian</th>
+                                <th>Buku Paling Sering Dipinjam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Kartu Anggota Section -->
+            <div id="kartu-anggota" class="page-section" style="display: none;">
+                <div class="page-header flex-between">
+                    <div>
+                        <h1>Kartu Anggota</h1>
+                        <p>Cetak kartu tanda anggota perpustakaan</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="printAllCards()">
+                            <i class='bx bx-printer'></i> Cetak Semua Kartu
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container glass-panel">
+                    <table id="table-kartu">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Siswa</th>
+                                <th>Kelas</th>
+                                <th>Preview Kartu</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            </div>
+        </main>
+    </section>
+
+    <!-- ======== MODALS ======== -->
+
+    <!-- Modal Tambah Siswa -->
+    <div id="modal-siswa" class="modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Tambah Data Siswa</h2>
+                <span class="close-modal" onclick="closeModal('modal-siswa')"><i class='bx bx-x'></i></span>
+            </div>
+            <form id="form-siswa">
+                <div class="form-group">
+                    <label>Nama Siswa</label>
+                    <input type="text" id="siswa-nama" required>
+                </div>
+                <div class="form-group">
+                    <label>Kelas</label>
+                    <input type="text" id="siswa-kelas" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Buku -->
+    <div id="modal-buku" class="modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Tambah Data Buku</h2>
+                <span class="close-modal" onclick="closeModal('modal-buku')"><i class='bx bx-x'></i></span>
+            </div>
+            <form id="form-buku">
+                <div class="form-group">
+                    <label>Judul Buku</label>
+                    <input type="text" id="buku-judul" required>
+                </div>
+                <div class="form-group">
+                    <label>Nama Pengarang</label>
+                    <input type="text" id="buku-pengarang" required>
+                </div>
+                <div class="form-group">
+                    <label>Nama Penerbit</label>
+                    <input type="text" id="buku-penerbit" required>
+                </div>
+                <div class="form-group">
+                    <label>Tahun Terbit</label>
+                    <input type="number" id="buku-tahun" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Peminjaman -->
+    <div id="modal-peminjaman" class="modal scrollable-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Catat Peminjaman</h2>
+                <span class="close-modal" onclick="closeModal('modal-peminjaman')"><i class='bx bx-x'></i></span>
+            </div>
+            <form id="form-peminjaman">
+                <input type="hidden" id="edit-pinjam-id">
+                <div class="form-group">
+                    <label>Pilih Siswa</label>
+                    <select id="pinjam-siswa" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Pilih Buku dari Daftar</label>
+                    <select id="pinjam-buku"></select>
+                </div>
+                <div class="form-group">
+                    <label>Atau Input Judul Buku Manual (Jika tidak ada di daftar)</label>
+                    <input type="text" id="pinjam-buku-manual" placeholder="Ketik judul buku...">
+                </div>
+                <div class="form-group">
+                    <label>Nama Pengarang (Manual)</label>
+                    <input type="text" id="pinjam-pengarang-manual" placeholder="Ketik nama pengarang...">
+                </div>
+                <div class="form-group">
+                    <label>Nama Penerbit (Manual)</label>
+                    <input type="text" id="pinjam-penerbit-manual" placeholder="Ketik nama penerbit...">
+                </div>
+                <div class="form-group">
+                    <label>Tahun Terbit (Manual)</label>
+                    <input type="number" id="pinjam-tahun-manual" placeholder="Ketik tahun...">
+                </div>
+                <div class="form-group">
+                    <label>Jumlah Buku</label>
+                    <input type="number" id="pinjam-jumlah" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Peminjaman</label>
+                    <input type="date" id="pinjam-tgl" required>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Rencana Pengembalian</label>
+                    <input type="date" id="pinjam-kemb" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Transaksi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Pengembalian -->
+    <div id="modal-pengembalian" class="modal scrollable-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Catat Pengembalian</h2>
+                <span class="close-modal" onclick="closeModal('modal-pengembalian')"><i class='bx bx-x'></i></span>
+            </div>
+            <form id="form-pengembalian">
+                <input type="hidden" id="edit-kembali-id">
+                <div class="form-group">
+                    <label>Pilih Transaksi Peminjaman</label>
+                    <select id="kembali-transaksi" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Dikembalikan</label>
+                    <input type="date" id="kembali-tgl" required>
+                </div>
+                <div class="form-group">
+                    <label>Jumlah Buku yang Dikembalikan</label>
+                    <input type="number" id="kembali-jumlah" min="1" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Pengembalian</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Print Template (Hidden entirely in UI, used for window.print()) -->
+    <div id="print-area" class="print-only"></div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
