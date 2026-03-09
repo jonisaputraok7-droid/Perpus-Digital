@@ -2,6 +2,33 @@
    Perpustakaan Digital MTs N 1 Bandar Lampung - Main Javascript Logic
    ========================================================================= */
 
+// --- Firebase Configuration (GANTI DENGAN PUNYA ANDA) ---
+// Silakan buat proyek di console.firebase.google.com lalu salin config di sini
+const firebaseConfig = {
+    apiKey: "AIzaSyBTwic2vL3IPxf4l8BQQNt5CjMHXgcRmy4",
+    authDomain: "perpusdigital-dc3fc.firebaseapp.com",
+    databaseURL: "https://perpusdigital-dc3fc-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "perpusdigital-dc3fc",
+    storageBucket: "perpusdigital-dc3fc.firebasestorage.app",
+    messagingSenderId: "124694258088",
+    appId: "1:124694258088:web:8c6fca7a368cf1545b3d9d",
+    measurementId: "G-5FER2FVCJ8"
+};
+
+// Initialize Firebase
+let db;
+try {
+    if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        console.log("Firebase initialized successfully.");
+    } else {
+        console.warn("Firebase script not found. Check index.html.");
+    }
+} catch (error) {
+    console.error("Firebase failed to initialize:", error);
+}
+
 // --- Initial Mock Data for Demonstration ---
 const initialData = {
     siswa: [
@@ -35,26 +62,48 @@ const initialData = {
 };
 
 // --- State Management ---
-let appData = JSON.parse(localStorage.getItem('perpusData'));
-if (!appData) {
-    appData = initialData;
-    saveData();
-} else {
-    // Migration: Ensure settings exist
-    if (!appData.settings) {
-        appData.settings = initialData.settings;
-        saveData();
-    } else {
-        // Migration: Ensure new fields exist
-        if (!appData.settings.librarian) {
-            appData.settings.librarian = "Winarno, S.Pd";
-            saveData();
+let appData = JSON.parse(localStorage.getItem('perpusData')) || initialData;
+
+// Sinkronisasi dengan Firebase (Real-time Sync)
+if (db) {
+    db.ref('perpusData').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            console.log("Data diterima dari Firebase:", data);
+            appData = data;
+            localStorage.setItem('perpusData', JSON.stringify(appData));
+
+            // Re-render UI hanya jika sudah di-login atau halaman aktif
+            if (sessionStorage.getItem('isLoggedIn')) {
+                renderAll();
+            }
+        } else {
+            console.log("Firebase kosong, mengirim data lokal ke server...");
+            saveData(); // Push local data to server if server is empty
         }
-    }
+    });
 }
 
 function saveData() {
     localStorage.setItem('perpusData', JSON.stringify(appData));
+    if (db) {
+        db.ref('perpusData').set(appData)
+            .catch(error => console.error("Gagal simpan ke Firebase:", error));
+    }
+}
+
+// Helper untuk render semua komponen UI
+function renderAll() {
+    renderDashboard();
+    renderSiswa();
+    renderBuku();
+    renderPeminjaman();
+    renderPengembalian();
+    renderRekapan();
+    renderSettings();
+    applySettings();
+    populateSelects();
+    checkRoleVisibility();
 }
 
 // --- DOM Elements ---
@@ -76,17 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showApp();
     }
 
-    // Init Data Rendering
-    renderDashboard();
-    renderSiswa();
-    renderBuku();
-    renderPeminjaman();
-    renderPengembalian();
-    renderRekapan();
-    renderSettings();
-    applySettings();
-    populateSelects();
-    checkRoleVisibility();
+    // Init Data Rendering (Using helper)
+    renderAll();
 });
 
 // --- Auth Handling ---
