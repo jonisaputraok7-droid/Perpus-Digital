@@ -63,6 +63,8 @@
             <ul class="nav-links">
                 <li><a href="#" data-target="dashboard" class="active"><i class='bx bx-grid-alt'></i><span
                             class="link-name">Dashboard</span></a></li>
+                <li><a href="#" data-target="kunjungan"><i class='bx bx-book-reader'></i><span
+                            class="link-name">Kunjungan</span></a></li>
                 <li class="admin-only"><a href="#" data-target="data-siswa"><i class='bx bx-user'></i><span
                             class="link-name">Data
                             Siswa</span></a></li>
@@ -172,6 +174,47 @@
                             <h3>Statistik Peminjaman (Bulanan)</h3>
                             <canvas id="peminjamanChart"></canvas>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Kunjungan Section -->
+                <div id="kunjungan" class="page-section" style="display: none;">
+                    <div class="page-header flex-between">
+                        <div>
+                            <h1>Buku Tamu / Kunjungan</h1>
+                            <p>Catat daftar pengunjung yang membaca buku, menggunakan laptop, dll</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-outline" onclick="downloadExcel('table-kunjungan', 'Data_Kunjungan')">
+                                <i class='bx bx-export'></i> Export Excel
+                            </button>
+                            <button class="btn btn-outline" onclick="printTable('table-kunjungan', 'LAPORAN KUNJUNGAN PERPUSTAKAAN')">
+                                <i class='bx bx-printer'></i> Cetak
+                            </button>
+                            <button class="btn btn-primary" onclick="openModal('modal-kunjungan')">
+                                <i class='bx bx-plus'></i> Tambah Kunjungan
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-container glass-panel">
+                        <table class="table" id="table-kunjungan">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Pengunjung</th>
+                                    <th>Kelas</th>
+                                    <th>Tujuan</th>
+                                    <th>Detail/Keperluan</th>
+                                    <th>Waktu Mulai</th>
+                                    <th>Waktu Selesai</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data akan dirender oleh JavaScript -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -608,10 +651,70 @@
         </div>
     </div>
 
+    <!-- Modal Tambah Kunjungan -->
+    <div id="modal-kunjungan" class="modal scrollable-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Buku Tamu / Catat Kunjungan</h2>
+                <span class="close-modal" onclick="closeModal('modal-kunjungan')"><i class='bx bx-x'></i></span>
+            </div>
+            <form id="form-kunjungan">
+                <input type="hidden" id="edit-kunjungan-id">
+                <div class="form-group">
+                    <label>Pilih Siswa</label>
+                    <select id="kunjungan-siswa"></select>
+                </div>
+                <div class="form-group">
+                    <label>Atau Input Nama Siswa Manual</label>
+                    <input type="text" id="kunjungan-siswa-manual" placeholder="Ketik nama siswa...">
+                </div>
+                <div class="form-group">
+                    <label>Kelas (Manual)</label>
+                    <input type="text" id="kunjungan-kelas-manual" placeholder="Ketik kelas...">
+                </div>
+                <div class="form-group">
+                    <label>Tujuan Kunjungan</label>
+                    <select id="kunjungan-tujuan" required onchange="toggleKunjunganDetails(this.value)">
+                        <option value="">-- Pilih Tujuan --</option>
+                        <option value="Membaca Buku">Membaca Buku</option>
+                        <option value="Menggunakan Laptop">Menggunakan Laptop/Komputer</option>
+                        <option value="Meminjam/Mengembalikan Buku">Meminjam/Mengembalikan Buku</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group" id="group-membaca-buku" style="display: none;">
+                    <label>Judul Buku yang Dibaca</label>
+                    <input type="text" id="kunjungan-judul-buku" placeholder="Ketik judul buku...">
+                    <label style="margin-top: 10px; display: block; font-size: 14px; color: var(--text-color); font-weight: 500; margin-bottom: 5px;">Manfaat / Intisari Buku</label>
+                    <textarea id="kunjungan-manfaat-buku" placeholder="Tuliskan manfaat atau intisari dari buku yang dibaca..." rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255, 255, 255, 0.7); outline: none; transition: border-color 0.3s;"></textarea>
+                </div>
+                <div class="form-group" id="group-keperluan-laptop" style="display: none;">
+                    <label>Keperluan Menggunakan Laptop</label>
+                    <select id="kunjungan-keperluan-laptop">
+                        <option value="">-- Pilih Keperluan --</option>
+                        <option value="Browsing/Internet">Browsing / Internet</option>
+                        <option value="Mencari Tugas">Mencari Tugas</option>
+                        <option value="Mengerjakan Tugas">Mengerjakan Tugas</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <input type="date" id="kunjungan-tgl" required>
+                </div>
+                <div class="form-group">
+                    <label>Waktu (Jam)</label>
+                    <input type="time" id="kunjungan-waktu" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Kunjungan</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Print Template (Hidden entirely in UI, used for window.print()) -->
     <div id="print-area" class="print-only"></div>
 
-    <script src="js/app.js?v=1.0.5"></script>
+    <script src="js/app.js?v=1.0.10"></script>
 </body>
 
 </html>
