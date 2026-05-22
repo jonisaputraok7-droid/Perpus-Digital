@@ -305,8 +305,18 @@ document.getElementById('form-peminjaman').addEventListener('submit', (e) => {
     e.preventDefault();
 
     const editId = document.getElementById('edit-pinjam-id').value;
+    let siswaId = parseInt(document.getElementById('pinjam-siswa').value);
+    const siswaManual = document.getElementById('pinjam-siswa-manual').value.trim();
+    const kelasManual = document.getElementById('pinjam-kelas-manual').value.trim();
+
     let bukuId = parseInt(document.getElementById('pinjam-buku').value);
     const bukuManual = document.getElementById('pinjam-buku-manual').value.trim();
+
+    // Validasi: Harus pilih siswa atau input manual
+    if (!siswaId && !siswaManual) {
+        alert('Silakan pilih siswa dari daftar atau input nama siswa manual.');
+        return;
+    }
 
     // Validasi: Harus pilih buku atau input manual
     if (!bukuId && !bukuManual) {
@@ -314,10 +324,23 @@ document.getElementById('form-peminjaman').addEventListener('submit', (e) => {
         return;
     }
 
-    // Jika input manual, tambahkan ke data buku dulu
+    // Jika input manual siswa, tambahkan ke data siswa dulu
+    if (!siswaId && siswaManual) {
+        const newSiswa = {
+            id: Date.now(),
+            nama: siswaManual,
+            kelas: kelasManual || "-"
+        };
+        appData.siswa.push(newSiswa);
+        siswaId = newSiswa.id;
+        renderSiswa(); // Update tabel siswa
+        populateSelects(); // Update dropdowns
+    }
+
+    // Jika input manual buku, tambahkan ke data buku dulu
     if (!bukuId && bukuManual) {
         const newBuku = {
-            id: Date.now(),
+            id: Date.now() + 2, // prevent ID collision if both are added at the exact same millisecond
             judul: bukuManual,
             pengarang: document.getElementById('pinjam-pengarang-manual').value.trim() || "-",
             penerbit: document.getElementById('pinjam-penerbit-manual').value.trim() || "-",
@@ -329,7 +352,7 @@ document.getElementById('form-peminjaman').addEventListener('submit', (e) => {
     }
 
     const payload = {
-        siswaId: parseInt(document.getElementById('pinjam-siswa').value),
+        siswaId: siswaId,
         bukuId: bukuId,
         jumlah: parseInt(document.getElementById('pinjam-jumlah').value),
         tglPinjam: document.getElementById('pinjam-tgl').value,
@@ -507,6 +530,8 @@ function editPeminjaman(id) {
         document.getElementById('pinjam-tgl').value = p.tglPinjam;
         document.getElementById('pinjam-kemb').value = p.tglKembaliRencana;
         document.getElementById('pinjam-buku-manual').value = ''; // Reset manual input
+        document.getElementById('pinjam-siswa-manual').value = ''; // Reset manual student input
+        document.getElementById('pinjam-kelas-manual').value = ''; // Reset manual class input
     }
 }
 
