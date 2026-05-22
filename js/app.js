@@ -64,6 +64,47 @@ const initialData = {
 // --- State Management ---
 let appData = JSON.parse(localStorage.getItem('perpusData')) || initialData;
 
+// Sanitasi Data untuk mencegah nilai NaN yang merusak Firebase set()
+function sanitizeData() {
+    if (!appData) appData = {};
+    if (!appData.siswa) appData.siswa = [];
+    if (!appData.buku) appData.buku = [];
+    if (!appData.peminjaman) appData.peminjaman = [];
+    if (!appData.pengembalian) appData.pengembalian = [];
+    if (!appData.settings) appData.settings = {};
+
+    try {
+        appData = JSON.parse(JSON.stringify(appData));
+    } catch (e) {
+        console.error("Sanitasi JSON gagal:", e);
+    }
+
+    if (!appData.siswa) appData.siswa = [];
+    if (!appData.buku) appData.buku = [];
+    if (!appData.peminjaman) appData.peminjaman = [];
+    if (!appData.pengembalian) appData.pengembalian = [];
+    if (!appData.settings) appData.settings = {};
+
+    appData.siswa = appData.siswa.filter(s => s && s.id && !isNaN(s.id));
+    appData.buku = appData.buku.filter(b => b && b.id && !isNaN(b.id));
+    appData.peminjaman = appData.peminjaman.filter(p => p && p.id && !isNaN(p.id));
+    appData.pengembalian = appData.pengembalian.filter(k => k && k.id && !isNaN(k.id));
+
+    appData.peminjaman.forEach(p => {
+        if (p.siswaId === null || isNaN(p.siswaId)) p.siswaId = (appData.siswa && appData.siswa[0]) ? appData.siswa[0].id : 1;
+        if (p.bukuId === null || isNaN(p.bukuId)) p.bukuId = (appData.buku && appData.buku[0]) ? appData.buku[0].id : 1;
+        if (p.jumlah === null || isNaN(p.jumlah)) p.jumlah = 1;
+    });
+
+    appData.pengembalian.forEach(k => {
+        if (k.transaksiId === null || isNaN(k.transaksiId)) k.transaksiId = 1;
+        if (k.jumlah === null || isNaN(k.jumlah)) k.jumlah = 1;
+    });
+}
+
+// Jalankan sanitasi awal
+sanitizeData();
+
 // Sinkronisasi dengan Firebase (Real-time Sync)
 if (db) {
     db.ref('perpusData').on('value', (snapshot) => {
@@ -71,6 +112,7 @@ if (db) {
         if (data) {
             console.log("Data diterima dari Firebase:", data);
             appData = data;
+            sanitizeData();
             localStorage.setItem('perpusData', JSON.stringify(appData));
 
             // Re-render UI hanya jika sudah di-login atau halaman aktif
@@ -85,6 +127,7 @@ if (db) {
 }
 
 function saveData() {
+    sanitizeData();
     localStorage.setItem('perpusData', JSON.stringify(appData));
     if (db) {
         db.ref('perpusData').set(appData)
@@ -303,81 +346,85 @@ document.getElementById('form-buku').addEventListener('submit', (e) => {
 // Tambah/Update Peminjaman
 document.getElementById('form-peminjaman').addEventListener('submit', (e) => {
     e.preventDefault();
+    try {
+        const editId = document.getElementById('edit-pinjam-id').value;
+        let siswaId = parseInt(document.getElementById('pinjam-siswa').value);
+        const siswaManual = document.getElementById('pinjam-siswa-manual').value.trim();
+        const kelasManual = document.getElementById('pinjam-kelas-manual').value.trim();
 
-    const editId = document.getElementById('edit-pinjam-id').value;
-    let siswaId = parseInt(document.getElementById('pinjam-siswa').value);
-    const siswaManual = document.getElementById('pinjam-siswa-manual').value.trim();
-    const kelasManual = document.getElementById('pinjam-kelas-manual').value.trim();
+        let bukuId = parseInt(document.getElementById('pinjam-buku').value);
+        const bukuManual = document.getElementById('pinjam-buku-manual').value.trim();
 
-    let bukuId = parseInt(document.getElementById('pinjam-buku').value);
-    const bukuManual = document.getElementById('pinjam-buku-manual').value.trim();
-
-    // Validasi: Harus pilih siswa atau input manual
-    if (!siswaId && !siswaManual) {
-        alert('Silakan pilih siswa dari daftar atau input nama siswa manual.');
-        return;
-    }
-
-    // Validasi: Harus pilih buku atau input manual
-    if (!bukuId && !bukuManual) {
-        alert('Silakan pilih buku dari daftar atau input judul buku manual.');
-        return;
-    }
-
-    // Jika input manual siswa, tambahkan ke data siswa dulu
-    if (!siswaId && siswaManual) {
-        const newSiswa = {
-            id: Date.now(),
-            nama: siswaManual,
-            kelas: kelasManual || "-"
-        };
-        appData.siswa.push(newSiswa);
-        siswaId = newSiswa.id;
-        renderSiswa(); // Update tabel siswa
-        populateSelects(); // Update dropdowns
-    }
-
-    // Jika input manual buku, tambahkan ke data buku dulu
-    if (!bukuId && bukuManual) {
-        const newBuku = {
-            id: Date.now() + 2, // prevent ID collision if both are added at the exact same millisecond
-            judul: bukuManual,
-            pengarang: document.getElementById('pinjam-pengarang-manual').value.trim() || "-",
-            penerbit: document.getElementById('pinjam-penerbit-manual').value.trim() || "-",
-            tahun: document.getElementById('pinjam-tahun-manual').value.trim() || "-"
-        };
-        appData.buku.push(newBuku);
-        bukuId = newBuku.id;
-        renderBuku(); // Update tabel buku
-    }
-
-    const payload = {
-        siswaId: siswaId,
-        bukuId: bukuId,
-        jumlah: parseInt(document.getElementById('pinjam-jumlah').value),
-        tglPinjam: document.getElementById('pinjam-tgl').value,
-        tglKembaliRencana: document.getElementById('pinjam-kemb').value,
-    };
-
-    if (editId) {
-        const idx = appData.peminjaman.findIndex(p => p.id === parseInt(editId));
-        if (idx !== -1) {
-            appData.peminjaman[idx] = { ...appData.peminjaman[idx], ...payload };
+        // Validasi: Harus pilih siswa atau input manual
+        if (!siswaId && !siswaManual) {
+            alert('Silakan pilih siswa dari daftar atau input nama siswa manual.');
+            return;
         }
-    } else {
-        appData.peminjaman.push({
-            id: Date.now() + 1,
-            ...payload,
-            status: "Dipinjam"
-        });
-    }
 
-    saveData();
-    renderPeminjaman();
-    renderDashboard();
-    closeModal('modal-peminjaman');
-    e.target.reset();
-    document.getElementById('edit-pinjam-id').value = '';
+        // Validasi: Harus pilih buku atau input manual
+        if (!bukuId && !bukuManual) {
+            alert('Silakan pilih buku dari daftar atau input judul buku manual.');
+            return;
+        }
+
+        // Jika input manual siswa, tambahkan ke data siswa dulu
+        if (!siswaId && siswaManual) {
+            const newSiswa = {
+                id: Date.now(),
+                nama: siswaManual,
+                kelas: kelasManual || "-"
+            };
+            appData.siswa.push(newSiswa);
+            siswaId = newSiswa.id;
+            renderSiswa(); // Update tabel siswa
+            populateSelects(); // Update dropdowns
+        }
+
+        // Jika input manual buku, tambahkan ke data buku dulu
+        if (!bukuId && bukuManual) {
+            const newBuku = {
+                id: Date.now() + 2, // prevent ID collision if both are added at the exact same millisecond
+                judul: bukuManual,
+                pengarang: document.getElementById('pinjam-pengarang-manual').value.trim() || "-",
+                penerbit: document.getElementById('pinjam-penerbit-manual').value.trim() || "-",
+                tahun: document.getElementById('pinjam-tahun-manual').value.trim() || "-"
+            };
+            appData.buku.push(newBuku);
+            bukuId = newBuku.id;
+            renderBuku(); // Update tabel buku
+        }
+
+        const payload = {
+            siswaId: siswaId,
+            bukuId: bukuId,
+            jumlah: parseInt(document.getElementById('pinjam-jumlah').value),
+            tglPinjam: document.getElementById('pinjam-tgl').value,
+            tglKembaliRencana: document.getElementById('pinjam-kemb').value,
+        };
+
+        if (editId) {
+            const idx = appData.peminjaman.findIndex(p => p.id === parseInt(editId));
+            if (idx !== -1) {
+                appData.peminjaman[idx] = { ...appData.peminjaman[idx], ...payload };
+            }
+        } else {
+            appData.peminjaman.push({
+                id: Date.now() + 1,
+                ...payload,
+                status: "Dipinjam"
+            });
+        }
+
+        saveData();
+        renderPeminjaman();
+        renderDashboard();
+        closeModal('modal-peminjaman');
+        e.target.reset();
+        document.getElementById('edit-pinjam-id').value = '';
+    } catch (err) {
+        console.error("Gagal simpan peminjaman:", err);
+        alert("Gagal simpan peminjaman: " + err.message);
+    }
 });
 
 // Tambah/Update Pengembalian
