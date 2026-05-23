@@ -71,6 +71,8 @@
                 <li class="admin-only"><a href="#" data-target="data-buku"><i class='bx bx-book'></i><span
                             class="link-name">Data
                             Buku</span></a></li>
+                <li class="admin-only"><a href="#" data-target="buku-induk"><i class='bx bx-library'></i><span
+                            class="link-name">Buku Induk</span></a></li>
                 <li><a href="#" data-target="peminjaman"><i class='bx bx-transfer-alt'></i><span
                             class="link-name">Peminjaman</span></a></li>
                 <li><a href="#" data-target="pengembalian"><i class='bx bx-check-circle'></i><span
@@ -286,6 +288,47 @@
                                     <th>Pengarang</th>
                                     <th>Penerbit</th>
                                     <th>Tahun Terbit</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data will be injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Buku Induk Section -->
+                <div id="buku-induk" class="page-section" style="display: none;">
+                    <div class="page-header flex-between">
+                        <div>
+                            <h1>Buku Induk</h1>
+                            <p>Buku register utama perpustakaan</p>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-outline" onclick="downloadExcel('table-buku-induk', 'Laporan_Buku_Induk')">
+                                <i class='bx bx-download'></i> Export Excel
+                            </button>
+                            <button class="btn btn-outline" onclick="printTable('table-buku-induk', 'BUKU INDUK PERPUSTAKAAN')">
+                                <i class='bx bx-printer'></i> Cetak
+                            </button>
+                            <button class="btn btn-primary" onclick="openModalBukuInduk()">
+                                <i class='bx bx-plus'></i> Tambah Buku Induk
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-container glass-panel">
+                        <table id="table-buku-induk">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>No. Induk</th>
+                                    <th>Tanggal Terima</th>
+                                    <th>Judul Buku</th>
+                                    <th>Pengarang</th>
+                                    <th>Penerbit</th>
+                                    <th>Asal / Sumber</th>
+                                    <th>Harga</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -568,6 +611,59 @@
                     <input type="number" id="buku-tahun" required>
                 </div>
                 <button type="submit" class="btn btn-primary">Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tambah Buku Induk -->
+    <div id="modal-buku-induk" class="modal scrollable-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 id="modal-buku-induk-title">Tambah Buku Induk</h2>
+                <span class="close-modal" onclick="closeModal('modal-buku-induk')"><i class='bx bx-x'></i></span>
+            </div>
+            <form id="form-buku-induk">
+                <input type="hidden" id="edit-buku-induk-id">
+                <div class="form-group">
+                    <label>No. Induk Buku</label>
+                    <input type="text" id="buku-induk-no" required>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal Terima</label>
+                    <input type="date" id="buku-induk-tgl" required>
+                </div>
+                <div class="form-group">
+                    <label>Judul Buku</label>
+                    <input type="text" id="buku-induk-judul" required>
+                </div>
+                <div class="form-group">
+                    <label>Nama Pengarang</label>
+                    <input type="text" id="buku-induk-pengarang" required>
+                </div>
+                <div class="form-group">
+                    <label>Penerbit</label>
+                    <input type="text" id="buku-induk-penerbit" required>
+                </div>
+                <div class="form-group">
+                    <label>Tahun Terbit</label>
+                    <input type="number" id="buku-induk-tahun" required>
+                </div>
+                <div class="form-group">
+                    <label>Asal / Sumber Buku</label>
+                    <select id="buku-induk-asal" required>
+                        <option value="">-- Pilih Asal Buku --</option>
+                        <option value="Pembelian">Pembelian</option>
+                        <option value="Bantuan Pemerintah">Bantuan Pemerintah</option>
+                        <option value="Sumbangan Alumni">Sumbangan Alumni</option>
+                        <option value="Sumbangan Siswa">Sumbangan Siswa</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Harga Buku (Rp)</label>
+                    <input type="number" id="buku-induk-harga" value="0">
+                </div>
+                <button type="submit" class="btn btn-primary">Simpan Buku Induk</button>
             </form>
         </div>
     </div>

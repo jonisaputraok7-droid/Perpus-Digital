@@ -75,6 +75,7 @@ function sanitizeData() {
     if (!appData.peminjaman) appData.peminjaman = [];
     if (!appData.pengembalian) appData.pengembalian = [];
     if (!appData.kunjungan) appData.kunjungan = [];
+    if (!appData.bukuInduk) appData.bukuInduk = [];
     if (!appData.settings) appData.settings = {};
 
     try {
@@ -88,6 +89,7 @@ function sanitizeData() {
     if (!appData.peminjaman) appData.peminjaman = [];
     if (!appData.pengembalian) appData.pengembalian = [];
     if (!appData.kunjungan) appData.kunjungan = [];
+    if (!appData.bukuInduk) appData.bukuInduk = [];
     if (!appData.settings) appData.settings = {};
 
     appData.siswa = appData.siswa.filter(s => s && s.id && !isNaN(s.id));
@@ -95,6 +97,7 @@ function sanitizeData() {
     appData.peminjaman = appData.peminjaman.filter(p => p && p.id && !isNaN(p.id));
     appData.pengembalian = appData.pengembalian.filter(k => k && k.id && !isNaN(k.id));
     appData.kunjungan = appData.kunjungan.filter(k => k && k.id && !isNaN(k.id));
+    appData.bukuInduk = appData.bukuInduk.filter(b => b && b.id && !isNaN(b.id));
 
     appData.peminjaman.forEach(p => {
         if (p.siswaId === null || isNaN(p.siswaId)) p.siswaId = (appData.siswa && appData.siswa[0]) ? appData.siswa[0].id : 1;
@@ -147,6 +150,7 @@ function renderAll() {
     renderSiswa();
     renderKunjungan();
     renderBuku();
+    renderBukuInduk();
     renderPeminjaman();
     renderPengembalian();
     renderRekapan();
@@ -377,6 +381,41 @@ document.getElementById('form-buku').addEventListener('submit', (e) => {
     renderBuku();
     closeModal('modal-buku');
     e.target.reset();
+});
+
+// Tambah / Edit Buku Induk
+document.getElementById('form-buku-induk').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const editId = document.getElementById('edit-buku-induk-id').value;
+    const payload = {
+        noInduk: document.getElementById('buku-induk-no').value,
+        tglTerima: document.getElementById('buku-induk-tgl').value,
+        judul: document.getElementById('buku-induk-judul').value,
+        pengarang: document.getElementById('buku-induk-pengarang').value,
+        penerbit: document.getElementById('buku-induk-penerbit').value,
+        tahun: document.getElementById('buku-induk-tahun').value,
+        asal: document.getElementById('buku-induk-asal').value,
+        harga: document.getElementById('buku-induk-harga').value
+    };
+
+    if (editId) {
+        const idx = appData.bukuInduk.findIndex(b => b.id === parseInt(editId));
+        if (idx !== -1) {
+            appData.bukuInduk[idx] = { ...appData.bukuInduk[idx], ...payload };
+        }
+    } else {
+        appData.bukuInduk.push({
+            id: Date.now(),
+            ...payload
+        });
+    }
+
+    saveData();
+    renderBukuInduk();
+    closeModal('modal-buku-induk');
+    e.target.reset();
+    document.getElementById('edit-buku-induk-id').value = '';
+    document.getElementById('modal-buku-induk-title').innerText = 'Tambah Buku Induk';
 });
 
 // Tambah/Update Peminjaman
@@ -645,6 +684,13 @@ function openModalSiswaTambah() {
     openModal('modal-siswa');
 }
 
+function openModalBukuInduk() {
+    document.getElementById('edit-buku-induk-id').value = '';
+    document.getElementById('form-buku-induk').reset();
+    document.getElementById('modal-buku-induk-title').innerText = 'Tambah Buku Induk';
+    openModal('modal-buku-induk');
+}
+
 function renderKunjungan() {
     const tbody = document.querySelector('#table-kunjungan tbody');
     if (!tbody) return;
@@ -786,6 +832,56 @@ function deleteBuku(id) {
         appData.buku = appData.buku.filter(b => b.id !== id);
         saveData();
         renderBuku();
+    }
+}
+
+function renderBukuInduk() {
+    const tbody = document.querySelector('#table-buku-induk tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    appData.bukuInduk.forEach((b, idx) => {
+        const hargaFormatted = b.harga ? "Rp " + parseInt(b.harga).toLocaleString('id-ID') : "-";
+        tbody.innerHTML += `
+            <tr>
+                <td>${idx + 1}</td>
+                <td><strong>${b.noInduk}</strong></td>
+                <td>${b.tglTerima}</td>
+                <td><strong>${b.judul}</strong></td>
+                <td>${b.pengarang}</td>
+                <td>${b.penerbit} (${b.tahun})</td>
+                <td>${b.asal}</td>
+                <td>${hargaFormatted}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline" onclick="editBukuInduk(${b.id})" title="Edit"><i class='bx bx-edit'></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteBukuInduk(${b.id})" title="Hapus"><i class='bx bx-trash'></i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function deleteBukuInduk(id) {
+    if (confirm('Yakin hapus data buku induk ini?')) {
+        appData.bukuInduk = appData.bukuInduk.filter(b => b.id !== id);
+        saveData();
+        renderBukuInduk();
+    }
+}
+
+function editBukuInduk(id) {
+    const b = appData.bukuInduk.find(item => item.id === id);
+    if (b) {
+        document.getElementById('edit-buku-induk-id').value = b.id;
+        document.getElementById('buku-induk-no').value = b.noInduk;
+        document.getElementById('buku-induk-tgl').value = b.tglTerima;
+        document.getElementById('buku-induk-judul').value = b.judul;
+        document.getElementById('buku-induk-pengarang').value = b.pengarang;
+        document.getElementById('buku-induk-penerbit').value = b.penerbit;
+        document.getElementById('buku-induk-tahun').value = b.tahun;
+        document.getElementById('buku-induk-asal').value = b.asal;
+        document.getElementById('buku-induk-harga').value = b.harga || 0;
+        document.getElementById('modal-buku-induk-title').innerText = 'Edit Buku Induk';
+        openModal('modal-buku-induk');
     }
 }
 
