@@ -381,6 +381,120 @@ ul {
     margin-bottom: 8px;
 }
 
+/* Submenu & Dropdown Styles */
+.nav-links li.has-dropdown {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-links .submenu {
+    max-height: 0;
+    overflow: hidden;
+    list-style: none;
+    padding-left: 20px;
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s;
+    background: rgba(244, 247, 254, 0.3);
+    border-radius: 8px;
+    margin: 0 4px;
+}
+
+.nav-links li.has-dropdown.open .submenu {
+    max-height: 250px;
+    padding: 8px 0;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.nav-links .submenu li {
+    margin-bottom: 4px;
+}
+
+.nav-links .submenu a {
+    padding: 10px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+}
+
+.nav-links .submenu a:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+}
+
+.nav-links .submenu a.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 6px rgba(13, 138, 188, 0.2);
+}
+
+.dropdown-icon {
+    margin-left: auto;
+    font-size: 18px;
+    transition: transform 0.3s;
+}
+
+.has-dropdown.open .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+/* Sidebar closed state for submenu */
+.sidebar.close .submenu {
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sidebar.close .dropdown-icon {
+    display: none;
+}
+
+/* Report Filter Row Styling */
+.report-filter-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dark);
+}
+
+.filter-input {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    outline: none;
+    font-size: 14px;
+    transition: var(--transit);
+    background: white;
+}
+
+.filter-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.report-section-divider {
+    margin: 30px 0;
+    border: 0;
+    border-top: 1px dashed var(--border-color);
+}
+
 .nav-links a {
     display: flex;
     align-items: center;

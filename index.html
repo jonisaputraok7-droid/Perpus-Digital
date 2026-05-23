@@ -77,9 +77,19 @@
                             class="link-name">Peminjaman</span></a></li>
                 <li><a href="#" data-target="pengembalian"><i class='bx bx-check-circle'></i><span
                             class="link-name">Pengembalian</span></a></li>
-                <li class="admin-only"><a href="#" data-target="rekapan"><i class='bx bx-file'></i><span
-                            class="link-name">Rekapan
-                            Data</span></a></li>
+                <li class="admin-only has-dropdown">
+                    <a href="#" class="dropdown-toggle">
+                        <i class='bx bx-file'></i>
+                        <span class="link-name">Laporan</span>
+                        <i class='bx bx-chevron-down dropdown-icon'></i>
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="#" data-target="laporan-harian"><span class="submenu-name">Laporan Harian</span></a></li>
+                        <li><a href="#" data-target="laporan-mingguan"><span class="submenu-name">Laporan Mingguan</span></a></li>
+                        <li><a href="#" data-target="laporan-bulanan"><span class="submenu-name">Laporan Bulanan</span></a></li>
+                        <li><a href="#" data-target="laporan-tahunan"><span class="submenu-name">Laporan Tahunan</span></a></li>
+                    </ul>
+                </li>
                 <li class="admin-only"><a href="#" data-target="kartu-anggota"><i class='bx bx-id-card'></i><span
                             class="link-name">Kartu Anggota</span></a></li>
                 <li class="admin-only"><a href="#" data-target="pengaturan"><i class='bx bx-cog'></i><span
@@ -523,6 +533,344 @@
                         </thead>
                         <tbody>
                             <!-- Data will be injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Laporan Harian Section -->
+            <div id="laporan-harian" class="page-section" style="display: none;">
+                <div class="page-header flex-between">
+                    <div>
+                        <h1>Laporan Harian</h1>
+                        <p>Analisis aktivitas harian perpustakaan</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline" onclick="exportLaporanHarianExcel()">
+                            <i class='bx bx-download'></i> Export Excel
+                        </button>
+                        <button class="btn btn-outline" onclick="printLaporanHarian()">
+                            <i class='bx bx-printer'></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Date Filter -->
+                <div class="glass-panel report-filter-card">
+                    <div class="filter-group">
+                        <label for="filter-harian-tanggal">Pilih Tanggal:</label>
+                        <input type="date" id="filter-harian-tanggal" class="filter-input" onchange="renderLaporanHarian()">
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-blue"><i class='bx bx-user'></i></div>
+                        <div class="stat-details">
+                            <h3>Kunjungan Hari Ini</h3>
+                            <p class="stat-value" id="rep-harian-kunjungan">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-green"><i class='bx bx-book-open'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Dipinjam</h3>
+                            <p class="stat-value" id="rep-harian-peminjaman">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-orange"><i class='bx bx-check-double'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Dikembalikan</h3>
+                            <p class="stat-value" id="rep-harian-pengembalian">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kunjungan Table -->
+                <div class="page-header" style="margin-top: 30px; margin-bottom: 15px;">
+                    <h2>Detail Kunjungan Harian</h2>
+                </div>
+                <div class="table-container glass-panel" style="margin-bottom: 30px;">
+                    <table id="table-laporan-harian-kunjungan">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Pengunjung</th>
+                                <th>Kelas</th>
+                                <th>Tujuan</th>
+                                <th>Keperluan / Detail</th>
+                                <th>Waktu Masuk</th>
+                                <th>Waktu Keluar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Peminjaman & Pengembalian Table -->
+                <div class="page-header" style="margin-top: 30px; margin-bottom: 15px;">
+                    <h2>Detail Transaksi Harian (Peminjaman & Pengembalian)</h2>
+                </div>
+                <div class="table-container glass-panel">
+                    <table id="table-laporan-harian-transaksi">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Jenis Aktivitas</th>
+                                <th>Nama Siswa</th>
+                                <th>Kelas</th>
+                                <th>Judul Buku</th>
+                                <th>Jumlah</th>
+                                <th>Detail Transaksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Laporan Mingguan Section -->
+            <div id="laporan-mingguan" class="page-section" style="display: none;">
+                <div class="page-header flex-between">
+                    <div>
+                        <h1>Laporan Mingguan</h1>
+                        <p>Analisis tren dan statistik mingguan perpustakaan</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline" onclick="exportLaporanMingguanExcel()">
+                            <i class='bx bx-download'></i> Export Excel
+                        </button>
+                        <button class="btn btn-outline" onclick="printLaporanMingguan()">
+                            <i class='bx bx-printer'></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Week Filter -->
+                <div class="glass-panel report-filter-card">
+                    <div class="filter-group">
+                        <label for="filter-mingguan-tanggal">Pilih Tanggal Acuan:</label>
+                        <input type="date" id="filter-mingguan-tanggal" class="filter-input" onchange="renderLaporanMingguan()">
+                        <span style="font-size: 14px; color: var(--text-muted); font-style: italic; margin-left: 10px;" id="filter-mingguan-range"></span>
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-blue"><i class='bx bx-group'></i></div>
+                        <div class="stat-details">
+                            <h3>Total Pengunjung</h3>
+                            <p class="stat-value" id="rep-mingguan-kunjungan">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-green"><i class='bx bx-export'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Dipinjam</h3>
+                            <p class="stat-value" id="rep-mingguan-peminjaman">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-orange"><i class='bx bx-import'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Dikembalikan</h3>
+                            <p class="stat-value" id="rep-mingguan-pengembalian">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="charts-container" style="margin-top: 30px; margin-bottom: 30px;">
+                    <div class="chart-card glass-panel" style="max-width: 100%; height: 350px;">
+                        <h3>Aktivitas Harian Minggu Ini</h3>
+                        <canvas id="laporanMingguanChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Weekly Table -->
+                <div class="page-header" style="margin-bottom: 15px;">
+                    <h2>Tabel Ringkasan Mingguan</h2>
+                </div>
+                <div class="table-container glass-panel">
+                    <table id="table-laporan-mingguan">
+                        <thead>
+                            <tr>
+                                <th>Hari & Tanggal</th>
+                                <th>Jumlah Kunjungan</th>
+                                <th>Jumlah Peminjaman (Transaksi)</th>
+                                <th>Jumlah Pengembalian (Buku)</th>
+                                <th>Keterangan / Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Laporan Bulanan Section -->
+            <div id="laporan-bulanan" class="page-section" style="display: none;">
+                <div class="page-header flex-between">
+                    <div>
+                        <h1>Laporan Bulanan</h1>
+                        <p>Analisis komprehensif bulanan</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline" onclick="exportLaporanBulananExcel()">
+                            <i class='bx bx-download'></i> Export Excel
+                        </button>
+                        <button class="btn btn-outline" onclick="printLaporanBulanan()">
+                            <i class='bx bx-printer'></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Month Filter -->
+                <div class="glass-panel report-filter-card">
+                    <div class="filter-group">
+                        <label>Pilih Bulan & Tahun:</label>
+                        <select id="filter-bulanan-bulan" class="filter-select" onchange="renderLaporanBulanan()"></select>
+                        <select id="filter-bulanan-tahun" class="filter-select" onchange="renderLaporanBulanan()"></select>
+                    </div>
+                </div>
+
+                <!-- Monthly Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-blue"><i class='bx bx-user-voice'></i></div>
+                        <div class="stat-details">
+                            <h3>Total Pengunjung</h3>
+                            <p class="stat-value" id="rep-bulanan-kunjungan">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-green"><i class='bx bx-bookmark-plus'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Dipinjam</h3>
+                            <p class="stat-value" id="rep-bulanan-peminjaman">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-orange"><i class='bx bx-task'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Dikembalikan</h3>
+                            <p class="stat-value" id="rep-bulanan-pengembalian">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-purple"><i class='bx bx-star'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Terpopuler</h3>
+                            <p class="stat-value" id="rep-bulanan-terpopuler" style="font-size: 16px; font-weight: 700; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Cumulative Table -->
+                <div class="page-header" style="margin-top: 30px; margin-bottom: 15px;">
+                    <h2>Tabel Aktivitas Harian (Akumulatif)</h2>
+                </div>
+                <div class="table-container glass-panel">
+                    <table id="table-laporan-bulanan">
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Kunjungan</th>
+                                <th>Peminjaman (Transaksi)</th>
+                                <th>Peminjaman (Total Buku)</th>
+                                <th>Pengembalian (Buku)</th>
+                                <th>Keterangan Tren</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Diisi oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Laporan Tahunan Section -->
+            <div id="laporan-tahunan" class="page-section" style="display: none;">
+                <div class="page-header flex-between">
+                    <div>
+                        <h1>Laporan Tahunan</h1>
+                        <p>Analisis makro kinerja perpustakaan tahunan</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline" onclick="exportLaporanTahunanExcel()">
+                            <i class='bx bx-download'></i> Export Excel
+                        </button>
+                        <button class="btn btn-outline" onclick="printLaporanTahunan()">
+                            <i class='bx bx-printer'></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Year Filter -->
+                <div class="glass-panel report-filter-card">
+                    <div class="filter-group">
+                        <label for="filter-tahunan-tahun">Pilih Tahun:</label>
+                        <select id="filter-tahunan-tahun" class="filter-select" onchange="renderLaporanTahunan()"></select>
+                    </div>
+                </div>
+
+                <!-- Yearly Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-blue"><i class='bx bx-street-view'></i></div>
+                        <div class="stat-details">
+                            <h3>Total Pengunjung</h3>
+                            <p class="stat-value" id="rep-tahunan-kunjungan">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-green"><i class='bx bx-spreadsheet'></i></div>
+                        <div class="stat-details">
+                            <h3>Total Peminjaman</h3>
+                            <p class="stat-value" id="rep-tahunan-peminjaman">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-orange"><i class='bx bx-calendar-check'></i></div>
+                        <div class="stat-details">
+                            <h3>Total Pengembalian</h3>
+                            <p class="stat-value" id="rep-tahunan-pengembalian">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon bg-purple"><i class='bx bx-award'></i></div>
+                        <div class="stat-details">
+                            <h3>Buku Terpopuler</h3>
+                            <p class="stat-value" id="rep-tahunan-terpopuler" style="font-size: 16px; font-weight: 700; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yearly Cumulative Table -->
+                <div class="page-header" style="margin-top: 30px; margin-bottom: 15px;">
+                    <h2>Rekapitulasi Bulanan Performa Perpustakaan</h2>
+                </div>
+                <div class="table-container glass-panel">
+                    <table id="table-laporan-tahunan">
+                        <thead>
+                            <tr>
+                                <th>Bulan</th>
+                                <th>Total Kunjungan</th>
+                                <th>Total Peminjaman (Transaksi)</th>
+                                <th>Total Pengembalian (Buku)</th>
+                                <th>Buku Terpopuler Bulanan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Diisi oleh JS -->
                         </tbody>
                     </table>
                 </div>

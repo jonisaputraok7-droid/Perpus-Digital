@@ -158,6 +158,7 @@ function renderAll() {
     applySettings();
     populateSelects();
     checkRoleVisibility();
+    initReportFilters();
 }
 
 // --- DOM Elements ---
@@ -258,6 +259,15 @@ toggleBtn.addEventListener('click', () => {
     sidebar.classList.toggle('close');
 });
 
+// Dropdown Toggling
+document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+    toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const parent = toggle.parentElement;
+        parent.classList.toggle('open');
+    });
+});
+
 navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -276,20 +286,27 @@ navLinks.forEach(link => {
         // Show target section
         const targetId = link.getAttribute('data-target');
         const targetSec = document.getElementById(targetId);
-        targetSec.style.display = 'block';
-
-        // Small delay to allow transition
-        setTimeout(() => {
-            targetSec.classList.add('active');
-        }, 50);
+        if (targetSec) {
+            targetSec.style.display = 'block';
+            
+            // Small delay to allow transition
+            setTimeout(() => {
+                targetSec.classList.add('active');
+            }, 50);
+        }
 
         // Re-render specific views if needed
         if (targetId === 'dashboard') renderDashboard();
         if (targetId === 'rekapan') renderRekapan();
         if (targetId === 'pengaturan') renderSettings();
         if (targetId === 'kartu-anggota') renderKartuAnggota();
+        if (targetId === 'laporan-harian') renderLaporanHarian();
+        if (targetId === 'laporan-mingguan') renderLaporanMingguan();
+        if (targetId === 'laporan-bulanan') renderLaporanBulanan();
+        if (targetId === 'laporan-tahunan') renderLaporanTahunan();
     });
 });
+
 
 // --- Modal Handling ---
 function openModal(id) {
@@ -1545,12 +1562,687 @@ function printAllCards() {
 const originalNavListener = () => {
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
-            // ... (existing logic handled by the original code)
             const targetId = link.getAttribute('data-target');
             if (targetId === 'kartu-anggota') renderKartuAnggota();
         });
     });
 };
+
+// --- LOGIKA FILTER DAN DETAIL LAPORAN (HARIAN, MINGGUAN, BULANAN, TAHUNAN) ---
+
+function initReportFilters() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    // Set daily filter default to today
+    const filterHarianTanggal = document.getElementById('filter-harian-tanggal');
+    if (filterHarianTanggal && !filterHarianTanggal.value) {
+        filterHarianTanggal.value = todayStr;
+    }
+    
+    // Set weekly filter default to today
+    const filterMingguanTanggal = document.getElementById('filter-mingguan-tanggal');
+    if (filterMingguanTanggal && !filterMingguanTanggal.value) {
+        filterMingguanTanggal.value = todayStr;
+    }
+    
+    // Populate month & year options for monthly/yearly reports
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const curDate = new Date();
+    const curMonth = curDate.getMonth(); // 0-11
+    const curYear = curDate.getFullYear();
+    
+    const mSelect = document.getElementById('filter-bulanan-bulan');
+    if (mSelect && mSelect.options.length === 0) {
+        months.forEach((m, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx + 1; // 1-indexed
+            opt.text = m;
+            if (idx === curMonth) opt.selected = true;
+            mSelect.appendChild(opt);
+        });
+    }
+    
+    // Populate years: dynamically get all unique years from transactions, default to current year and surrounding
+    const years = new Set();
+    years.add(curYear);
+    years.add(curYear - 1);
+    years.add(curYear + 1);
+    
+    appData.peminjaman.forEach(p => {
+        if (p.tglPinjam) years.add(new Date(p.tglPinjam).getFullYear());
+    });
+    appData.kunjungan.forEach(k => {
+        if (k.tanggal) years.add(new Date(k.tanggal).getFullYear());
+    });
+    
+    const sortedYears = Array.from(years).sort((a, b) => b - a); // descending
+    
+    const ySelectMonthly = document.getElementById('filter-bulanan-tahun');
+    if (ySelectMonthly && ySelectMonthly.options.length === 0) {
+        sortedYears.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.text = y;
+            if (y === curYear) opt.selected = true;
+            ySelectMonthly.appendChild(opt);
+        });
+    }
+    
+    const ySelectYearly = document.getElementById('filter-tahunan-tahun');
+    if (ySelectYearly && ySelectYearly.options.length === 0) {
+        sortedYears.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.text = y;
+            if (y === curYear) opt.selected = true;
+            ySelectYearly.appendChild(opt);
+        });
+    }
+}
+
+// 1. LAPORAN HARIAN
+function renderLaporanHarian() {
+    initReportFilters();
+    const dateInput = document.getElementById('filter-harian-tanggal').value;
+    if (!dateInput) return;
+    
+    // Filter Kunjungan
+    const dailyKunjungan = appData.kunjungan.filter(k => k.tanggal === dateInput);
+    document.getElementById('rep-harian-kunjungan').innerText = dailyKunjungan.length;
+    
+    // Filter Peminjaman
+    const dailyPeminjaman = appData.peminjaman.filter(p => p.tglPinjam === dateInput);
+    const sumPeminjamanBuku = dailyPeminjaman.reduce((sum, p) => sum + (p.jumlah || 0), 0);
+    document.getElementById('rep-harian-peminjaman').innerText = sumPeminjamanBuku;
+    
+    // Filter Pengembalian
+    const dailyPengembalian = appData.pengembalian.filter(k => k.tglDikembalikan === dateInput);
+    const sumPengembalianBuku = dailyPengembalian.reduce((sum, k) => sum + (k.jumlah || 0), 0);
+    document.getElementById('rep-harian-pengembalian').innerText = sumPengembalianBuku;
+    
+    // Render Kunjungan Table
+    const kunBody = document.querySelector('#table-laporan-harian-kunjungan tbody');
+    kunBody.innerHTML = '';
+    if (dailyKunjungan.length === 0) {
+        kunBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Tidak ada data kunjungan pada hari ini.</td></tr>';
+    } else {
+        dailyKunjungan.forEach((k, idx) => {
+            const siswa = getSiswa(k.siswaId);
+            kunBody.innerHTML += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td><strong>${siswa.nama || 'Siswa Manual/Lainnya'}</strong></td>
+                    <td>${siswa.kelas || '-'}</td>
+                    <td><span class="badge ${k.tujuan.includes('Membaca') ? 'badge-success' : 'badge-warning'}">${k.tujuan}</span></td>
+                    <td><small>${k.detailTujuan || '-'}</small></td>
+                    <td>${k.waktu || '-'}</td>
+                    <td><strong>${k.waktuSelesai || '-'}</strong></td>
+                </tr>
+            `;
+        });
+    }
+    
+    // Render Transaksi Table
+    const trBody = document.querySelector('#table-laporan-harian-transaksi tbody');
+    trBody.innerHTML = '';
+    
+    const dailyLogs = [];
+    dailyPeminjaman.forEach(p => {
+        const siswa = getSiswa(p.siswaId);
+        const buku = getBuku(p.bukuId);
+        dailyLogs.push({
+            type: 'Pinjam',
+            siswa: siswa.nama || 'Siswa Manual/Lainnya',
+            kelas: siswa.kelas || '-',
+            buku: buku.judul || '-',
+            jumlah: p.jumlah,
+            detail: `Tenggat: ${p.tglKembaliRencana}`
+        });
+    });
+    
+    dailyPengembalian.forEach(k => {
+        const pinjam = appData.peminjaman.find(p => p.id === k.transaksiId) || {};
+        const siswa = getSiswa(pinjam.siswaId);
+        const buku = getBuku(pinjam.bukuId);
+        dailyLogs.push({
+            type: 'Kembali',
+            siswa: siswa.nama || 'Siswa Manual/Lainnya',
+            kelas: siswa.kelas || '-',
+            buku: buku.judul || '-',
+            jumlah: k.jumlah,
+            detail: k.statusKeterlambatan || 'Tepat Waktu'
+        });
+    });
+    
+    if (dailyLogs.length === 0) {
+        trBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Tidak ada transaksi peminjaman/pengembalian hari ini.</td></tr>';
+    } else {
+        dailyLogs.forEach((log, idx) => {
+            const typeBadge = log.type === 'Pinjam' ? 
+                '<span class="badge badge-warning">Peminjaman</span>' : 
+                '<span class="badge badge-success">Pengembalian</span>';
+            trBody.innerHTML += `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${typeBadge}</td>
+                    <td><strong>${log.siswa}</strong></td>
+                    <td>${log.kelas}</td>
+                    <td>${log.buku}</td>
+                    <td>${log.jumlah}</td>
+                    <td><small><i>${log.detail}</i></small></td>
+                </tr>
+            `;
+        });
+    }
+}
+
+// 2. LAPORAN MINGGUAN
+let weeklyChart;
+function renderLaporanMingguan() {
+    initReportFilters();
+    const dateVal = document.getElementById('filter-mingguan-tanggal').value;
+    if (!dateVal) return;
+    
+    const baseDate = new Date(dateVal);
+    const day = baseDate.getDay();
+    const diffToMonday = baseDate.getDate() - day + (day === 0 ? -6 : 1);
+    
+    const monday = new Date(baseDate.setDate(diffToMonday));
+    const sunday = new Date(new Date(monday).setDate(monday.getDate() + 6));
+    
+    const mondayStr = monday.toISOString().split('T')[0];
+    const sundayStr = sunday.toISOString().split('T')[0];
+    
+    document.getElementById('filter-mingguan-range').innerText = `Rentang Minggu: ${formatDateIndo(mondayStr)} s/d ${formatDateIndo(sundayStr)}`;
+    
+    const weekDaysName = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+    const datesOfWeek = [];
+    
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        datesOfWeek.push(d.toISOString().split('T')[0]);
+    }
+    
+    let totalKunjungan = 0;
+    let totalPeminjaman = 0;
+    let totalPengembalian = 0;
+    
+    const chartLabels = [];
+    const kunData = [];
+    const pinjamData = [];
+    const kembaliData = [];
+    
+    const tbody = document.querySelector('#table-laporan-mingguan tbody');
+    tbody.innerHTML = '';
+    
+    datesOfWeek.forEach((dateStr, idx) => {
+        const dayKunjungan = appData.kunjungan.filter(k => k.tanggal === dateStr).length;
+        const dayPeminjaman = appData.peminjaman.filter(p => p.tglPinjam === dateStr).length;
+        const dayPengembalian = appData.pengembalian.filter(k => k.tglDikembalikan === dateStr).reduce((s, k) => s + (k.jumlah || 0), 0);
+        
+        totalKunjungan += dayKunjungan;
+        totalPeminjaman += dayPeminjaman;
+        totalPengembalian += dayPengembalian;
+        
+        const dayLabel = `${weekDaysName[idx]} (${dateStr.split('-')[2]})`;
+        chartLabels.push(dayLabel);
+        kunData.push(dayKunjungan);
+        pinjamData.push(dayPeminjaman);
+        kembaliData.push(dayPengembalian);
+        
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${weekDaysName[idx]}, ${formatDateIndo(dateStr)}</strong></td>
+                <td><span class="badge badge-primary">${dayKunjungan} Kunjungan</span></td>
+                <td><span class="badge badge-warning">${dayPeminjaman} Transaksi</span></td>
+                <td><span class="badge badge-success">${dayPengembalian} Buku Kembali</span></td>
+                <td><small><i>${dayKunjungan || dayPeminjaman || dayPengembalian ? 'Aktivitas Tercatat' : 'Tidak Ada Aktivitas'}</i></small></td>
+            </tr>
+        `;
+    });
+    
+    document.getElementById('rep-mingguan-kunjungan').innerText = totalKunjungan;
+    document.getElementById('rep-mingguan-peminjaman').innerText = totalPeminjaman;
+    document.getElementById('rep-mingguan-pengembalian').innerText = totalPengembalian;
+    
+    const ctx = document.getElementById('laporanMingguanChart').getContext('2d');
+    if (weeklyChart) weeklyChart.destroy();
+    
+    weeklyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartLabels,
+            datasets: [
+                {
+                    label: 'Kunjungan',
+                    data: kunData,
+                    backgroundColor: 'rgba(13, 138, 188, 0.7)',
+                    borderColor: '#0D8ABC',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'Peminjaman',
+                    data: pinjamData,
+                    backgroundColor: 'rgba(242, 153, 74, 0.7)',
+                    borderColor: '#F2994A',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'Pengembalian',
+                    data: kembaliData,
+                    backgroundColor: 'rgba(39, 174, 96, 0.7)',
+                    borderColor: '#27AE60',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1, precision: 0 }
+                }
+            }
+        }
+    });
+}
+
+// 3. LAPORAN BULANAN
+function renderLaporanBulanan() {
+    initReportFilters();
+    const month = parseInt(document.getElementById('filter-bulanan-bulan').value);
+    const year = parseInt(document.getElementById('filter-bulanan-tahun').value);
+    if (!month || !year) return;
+    
+    const daysInMonth = new Date(year, month, 0).getDate();
+    
+    let totalKunjungan = 0;
+    let totalPeminjaman = 0;
+    let totalPeminjamanBuku = 0;
+    let totalPengembalian = 0;
+    const popularBooks = {};
+    
+    const tbody = document.querySelector('#table-laporan-bulanan tbody');
+    tbody.innerHTML = '';
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        const dayKunjungan = appData.kunjungan.filter(k => k.tanggal === dateStr);
+        const dayPeminjaman = appData.peminjaman.filter(p => p.tglPinjam === dateStr);
+        const dayPeminjamanBuku = dayPeminjaman.reduce((sum, p) => sum + (p.jumlah || 0), 0);
+        const dayPengembalian = appData.pengembalian.filter(k => k.tglDikembalikan === dateStr);
+        const dayPengembalianBuku = dayPengembalian.reduce((sum, k) => sum + (k.jumlah || 0), 0);
+        
+        totalKunjungan += dayKunjungan.length;
+        totalPeminjaman += dayPeminjaman.length;
+        totalPeminjamanBuku += dayPeminjamanBuku;
+        totalPengembalian += dayPengembalianBuku;
+        
+        dayPeminjaman.forEach(p => {
+            popularBooks[p.bukuId] = (popularBooks[p.bukuId] || 0) + (p.jumlah || 0);
+        });
+        
+        if (dayKunjungan.length > 0 || dayPeminjaman.length > 0 || dayPengembalianBuku > 0) {
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${day} ${formatBulanIndo(month)} ${year}</strong></td>
+                    <td><span class="badge badge-primary">${dayKunjungan.length} Kunjungan</span></td>
+                    <td>${dayPeminjaman.length} Transaksi</td>
+                    <td><span class="badge badge-warning">${dayPeminjamanBuku} Buku</span></td>
+                    <td><span class="badge badge-success">${dayPengembalianBuku} Buku</span></td>
+                    <td><small><i>${dayKunjungan.length > 5 ? 'Aktivitas Tinggi' : 'Tren Stabil'}</i></small></td>
+                </tr>
+            `;
+        }
+    }
+    
+    if (tbody.innerHTML === '') {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Tidak ada aktivitas perpustakaan pada bulan ini.</td></tr>';
+    }
+    
+    let topBookId = null;
+    let maxBorrow = 0;
+    for (const [bId, count] of Object.entries(popularBooks)) {
+        if (count > maxBorrow) {
+            maxBorrow = count;
+            topBookId = parseInt(bId);
+        }
+    }
+    const topBookName = topBookId ? getBuku(topBookId).judul : '-';
+    
+    document.getElementById('rep-bulanan-kunjungan').innerText = totalKunjungan;
+    document.getElementById('rep-bulanan-peminjaman').innerText = totalPeminjamanBuku;
+    document.getElementById('rep-bulanan-pengembalian').innerText = totalPengembalian;
+    document.getElementById('rep-bulanan-terpopuler').innerText = topBookName;
+    document.getElementById('rep-bulanan-terpopuler').title = topBookName;
+}
+
+// 4. LAPORAN TAHUNAN
+function renderLaporanTahunan() {
+    initReportFilters();
+    const year = parseInt(document.getElementById('filter-tahunan-tahun').value);
+    if (!year) return;
+    
+    let totalKunjungan = 0;
+    let totalPeminjaman = 0;
+    let totalPengembalian = 0;
+    const popularBooks = {};
+    const monthsName = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    
+    const tbody = document.querySelector('#table-laporan-tahunan tbody');
+    tbody.innerHTML = '';
+    
+    monthsName.forEach((mName, mIdx) => {
+        const monthNum = mIdx + 1;
+        let mKunjungan = 0;
+        let mPeminjaman = 0;
+        let mPeminjamanBuku = 0;
+        let mPengembalian = 0;
+        const mPopularBooks = {};
+        
+        const daysInMonth = new Date(year, monthNum, 0).getDate();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            const dayKunjungan = appData.kunjungan.filter(k => k.tanggal === dateStr).length;
+            const dayPeminjaman = appData.peminjaman.filter(p => p.tglPinjam === dateStr);
+            const dayPeminjamanBuku = dayPeminjaman.reduce((sum, p) => sum + (p.jumlah || 0), 0);
+            const dayPengembalianBuku = appData.pengembalian.filter(k => k.tglDikembalikan === dateStr).reduce((sum, k) => sum + (k.jumlah || 0), 0);
+            
+            mKunjungan += dayKunjungan;
+            mPeminjaman += dayPeminjaman.length;
+            mPeminjamanBuku += dayPeminjamanBuku;
+            mPengembalian += dayPengembalianBuku;
+            
+            dayPeminjaman.forEach(p => {
+                popularBooks[p.bukuId] = (popularBooks[p.bukuId] || 0) + (p.jumlah || 0);
+                mPopularBooks[p.bukuId] = (mPopularBooks[p.bukuId] || 0) + (p.jumlah || 0);
+            });
+        }
+        
+        totalKunjungan += mKunjungan;
+        totalPeminjaman += mPeminjamanBuku;
+        totalPengembalian += mPengembalian;
+        
+        let mTopBookId = null;
+        let mMaxBorrow = 0;
+        for (const [bId, count] of Object.entries(mPopularBooks)) {
+            if (count > mMaxBorrow) { mMaxBorrow = count; mTopBookId = parseInt(bId); }
+        }
+        const mTopBookName = mTopBookId ? getBuku(mTopBookId).judul : '-';
+        
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${mName} ${year}</strong></td>
+                <td><span class="badge badge-primary">${mKunjungan} Kunjungan</span></td>
+                <td>${mPeminjaman} Transaksi (${mPeminjamanBuku} Buku)</td>
+                <td><span class="badge badge-success">${mPengembalian} Buku</span></td>
+                <td>${mTopBookName} ${mMaxBorrow ? `<small>(${mMaxBorrow} kali)</small>` : ''}</td>
+            </tr>
+        `;
+    });
+    
+    let topBookId = null;
+    let maxBorrow = 0;
+    for (const [bId, count] of Object.entries(popularBooks)) {
+        if (count > maxBorrow) {
+            maxBorrow = count;
+            topBookId = parseInt(bId);
+        }
+    }
+    const topBookName = topBookId ? getBuku(topBookId).judul : '-';
+    
+    document.getElementById('rep-tahunan-kunjungan').innerText = totalKunjungan;
+    document.getElementById('rep-tahunan-peminjaman').innerText = totalPeminjaman;
+    document.getElementById('rep-tahunan-pengembalian').innerText = totalPengembalian;
+    document.getElementById('rep-tahunan-terpopuler').innerText = topBookName;
+    document.getElementById('rep-tahunan-terpopuler').title = topBookName;
+}
+
+// --- UTILITY DATE HELPERS ---
+function formatDateIndo(dateStr) {
+    if (!dateStr) return '-';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    return `${parts[2]} ${months[parseInt(parts[1]) - 1]} ${parts[0]}`;
+}
+
+function formatBulanIndo(mIdx) {
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    return months[mIdx - 1] || '';
+}
+
+// --- CETAK LAPORAN DENGAN KOP SURAT RESMI ---
+
+function printLaporanHarian() {
+    const s = appData.settings;
+    const dateInput = document.getElementById('filter-harian-tanggal').value;
+    const printArea = document.getElementById('print-area');
+    
+    const tableKunHtml = document.getElementById('table-laporan-harian-kunjungan').outerHTML;
+    const tableTrHtml = document.getElementById('table-laporan-harian-transaksi').outerHTML;
+    
+    let logoHtml = s.logo ? `<img src="${s.logo}" class="print-logo">` : '';
+    let addressHtml = s.address ? `<p class="print-address">${s.address}</p>` : '';
+    let webHtml = s.website ? `<p class="print-web">${s.website}</p>` : '';
+    
+    printArea.innerHTML = `
+        <div class="print-header">
+            <div class="print-header-content">
+                ${logoHtml}
+                <div class="print-header-text">
+                    <h1>PERPUSTAKAAN ${s.schoolName ? s.schoolName.toUpperCase() : 'DIGITAL'}</h1>
+                    ${addressHtml}
+                    ${webHtml}
+                </div>
+            </div>
+            <hr class="print-divider">
+            <h2 class="print-title">LAPORAN HARIAN PERPUSTAKAAN</h2>
+            <p style="text-align: center; margin-bottom: 20px;"><strong>Tanggal: ${formatDateIndo(dateInput)}</strong></p>
+        </div>
+        <div class="print-body">
+            <h3>A. Daftar Pengunjung Harian</h3>
+            ${tableKunHtml.replace('id="table-laporan-harian-kunjungan"', 'class="print-table"')}
+            
+            <h3 style="margin-top: 30px;">B. Transaksi Peminjaman & Pengembalian Harian</h3>
+            ${tableTrHtml.replace('id="table-laporan-harian-transaksi"', 'class="print-table"')}
+        </div>
+        <div class="print-footer">
+            <div class="signature-grid">
+                <div class="signature-box">
+                    <p>Mengetahui,</p>
+                    <p>Kepala Madrasah</p>
+                    <br><br><br>
+                    <p><strong>(${s.headmaster || '....................'})</strong></p>
+                </div>
+                <div class="signature-box">
+                    <p>&nbsp;</p>
+                    <p>Kepala Perpustakaan</p>
+                    <br><br><br>
+                    <p><strong>(${s.librarian || 'Winarno, S.Pd'})</strong></p>
+                </div>
+            </div>
+        </div>
+    `;
+    window.print();
+}
+
+function printLaporanMingguan() {
+    const s = appData.settings;
+    const dateInput = document.getElementById('filter-mingguan-tanggal').value;
+    const tableHtml = document.getElementById('table-laporan-mingguan').outerHTML;
+    const printArea = document.getElementById('print-area');
+    
+    let logoHtml = s.logo ? `<img src="${s.logo}" class="print-logo">` : '';
+    let addressHtml = s.address ? `<p class="print-address">${s.address}</p>` : '';
+    let webHtml = s.website ? `<p class="print-web">${s.website}</p>` : '';
+    
+    printArea.innerHTML = `
+        <div class="print-header">
+            <div class="print-header-content">
+                ${logoHtml}
+                <div class="print-header-text">
+                    <h1>PERPUSTAKAAN ${s.schoolName ? s.schoolName.toUpperCase() : 'DIGITAL'}</h1>
+                    ${addressHtml}
+                    ${webHtml}
+                </div>
+            </div>
+            <hr class="print-divider">
+            <h2 class="print-title">LAPORAN MINGGUAN PERPUSTAKAAN</h2>
+            <p style="text-align: center; margin-bottom: 20px;"><strong>Tanggal Acuan: ${formatDateIndo(dateInput)}</strong></p>
+        </div>
+        <div class="print-body">
+            ${tableHtml.replace('id="table-laporan-mingguan"', 'class="print-table"')}
+        </div>
+        <div class="print-footer">
+            <div class="signature-grid">
+                <div class="signature-box">
+                    <p>Mengetahui,</p>
+                    <p>Kepala Madrasah</p>
+                    <br><br><br>
+                    <p><strong>(${s.headmaster || '....................'})</strong></p>
+                </div>
+                <div class="signature-box">
+                    <p>&nbsp;</p>
+                    <p>Kepala Perpustakaan</p>
+                    <br><br><br>
+                    <p><strong>(${s.librarian || 'Winarno, S.Pd'})</strong></p>
+                </div>
+            </div>
+        </div>
+    `;
+    window.print();
+}
+
+function printLaporanBulanan() {
+    const s = appData.settings;
+    const m = document.getElementById('filter-bulanan-bulan').value;
+    const y = document.getElementById('filter-bulanan-tahun').value;
+    const tableHtml = document.getElementById('table-laporan-bulanan').outerHTML;
+    const printArea = document.getElementById('print-area');
+    
+    let logoHtml = s.logo ? `<img src="${s.logo}" class="print-logo">` : '';
+    let addressHtml = s.address ? `<p class="print-address">${s.address}</p>` : '';
+    let webHtml = s.website ? `<p class="print-web">${s.website}</p>` : '';
+    
+    printArea.innerHTML = `
+        <div class="print-header">
+            <div class="print-header-content">
+                ${logoHtml}
+                <div class="print-header-text">
+                    <h1>PERPUSTAKAAN ${s.schoolName ? s.schoolName.toUpperCase() : 'DIGITAL'}</h1>
+                    ${addressHtml}
+                    ${webHtml}
+                </div>
+            </div>
+            <hr class="print-divider">
+            <h2 class="print-title">LAPORAN BULANAN PERPUSTAKAAN</h2>
+            <p style="text-align: center; margin-bottom: 20px;"><strong>Periode: ${formatBulanIndo(parseInt(m))} ${y}</strong></p>
+        </div>
+        <div class="print-body">
+            ${tableHtml.replace('id="table-laporan-bulanan"', 'class="print-table"')}
+        </div>
+        <div class="print-footer">
+            <div class="signature-grid">
+                <div class="signature-box">
+                    <p>Mengetahui,</p>
+                    <p>Kepala Madrasah</p>
+                    <br><br><br>
+                    <p><strong>(${s.headmaster || '....................'})</strong></p>
+                </div>
+                <div class="signature-box">
+                    <p>&nbsp;</p>
+                    <p>Kepala Perpustakaan</p>
+                    <br><br><br>
+                    <p><strong>(${s.librarian || 'Winarno, S.Pd'})</strong></p>
+                </div>
+            </div>
+        </div>
+    `;
+    window.print();
+}
+
+function printLaporanTahunan() {
+    const s = appData.settings;
+    const y = document.getElementById('filter-tahunan-tahun').value;
+    const tableHtml = document.getElementById('table-laporan-tahunan').outerHTML;
+    const printArea = document.getElementById('print-area');
+    
+    let logoHtml = s.logo ? `<img src="${s.logo}" class="print-logo">` : '';
+    let addressHtml = s.address ? `<p class="print-address">${s.address}</p>` : '';
+    let webHtml = s.website ? `<p class="print-web">${s.website}</p>` : '';
+    
+    printArea.innerHTML = `
+        <div class="print-header">
+            <div class="print-header-content">
+                ${logoHtml}
+                <div class="print-header-text">
+                    <h1>PERPUSTAKAAN ${s.schoolName ? s.schoolName.toUpperCase() : 'DIGITAL'}</h1>
+                    ${addressHtml}
+                    ${webHtml}
+                </div>
+            </div>
+            <hr class="print-divider">
+            <h2 class="print-title">LAPORAN TAHUNAN PERPUSTAKAAN</h2>
+            <p style="text-align: center; margin-bottom: 20px;"><strong>Tahun: ${y}</strong></p>
+        </div>
+        <div class="print-body">
+            ${tableHtml.replace('id="table-laporan-tahunan"', 'class="print-table"')}
+        </div>
+        <div class="print-footer">
+            <div class="signature-grid">
+                <div class="signature-box">
+                    <p>Mengetahui,</p>
+                    <p>Kepala Madrasah</p>
+                    <br><br><br>
+                    <p><strong>(${s.headmaster || '....................'})</strong></p>
+                </div>
+                <div class="signature-box">
+                    <p>&nbsp;</p>
+                    <p>Kepala Perpustakaan</p>
+                    <br><br><br>
+                    <p><strong>(${s.librarian || 'Winarno, S.Pd'})</strong></p>
+                </div>
+            </div>
+        </div>
+    `;
+    window.print();
+}
+
+// --- EXPORT KE EXCEL ---
+
+function exportLaporanHarianExcel() {
+    const dateInput = document.getElementById('filter-harian-tanggal').value;
+    downloadExcel('table-laporan-harian-kunjungan', `Laporan_Harian_Kunjungan_${dateInput}`);
+}
+
+function exportLaporanMingguanExcel() {
+    const dateInput = document.getElementById('filter-mingguan-tanggal').value;
+    downloadExcel('table-laporan-mingguan', `Laporan_Mingguan_${dateInput}`);
+}
+
+function exportLaporanBulananExcel() {
+    const m = document.getElementById('filter-bulanan-bulan').value;
+    const y = document.getElementById('filter-bulanan-tahun').value;
+    downloadExcel('table-laporan-bulanan', `Laporan_Bulanan_${y}_${m}`);
+}
+
+function exportLaporanTahunanExcel() {
+    const y = document.getElementById('filter-tahunan-tahun').value;
+    downloadExcel('table-laporan-tahunan', `Laporan_Tahunan_${y}`);
+}
+
 
 // Since we cannot easily modify the existing listener without full replacement,
 // let's add an additional check in the render logic if possible or monkey-patch.
