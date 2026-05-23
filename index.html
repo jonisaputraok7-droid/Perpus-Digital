@@ -85,10 +85,6 @@
             </ul>
 
             <div class="sidebar-bottom">
-                <a href="#" id="logout-btn">
-                    <i class='bx bx-log-out'></i>
-                    <span class="link-name">Logout</span>
-                </a>
                 <div class="sidebar-footer">
                     <span class="footer-icon">👨‍💻</span>
                     <span class="footer-text">Developed by Rudi Hen</span>
@@ -121,6 +117,9 @@
                     </div>
                     <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Profile"
                         class="avatar">
+                    <a href="#" id="logout-btn" style="margin-left: 15px; color: #dc3545; font-size: 24px; display: flex; align-items: center; text-decoration: none;" title="Logout">
+                        <i class='bx bx-log-out'></i>
+                    </a>
                 </div>
             </header>
 
@@ -235,7 +234,7 @@
                                 onclick="document.getElementById('upload-siswa-input').click()">
                                 <i class='bx bx-upload'></i> Upload Excel
                             </button>
-                            <button class="btn btn-primary" onclick="openModal('modal-siswa')">
+                            <button class="btn btn-primary" onclick="openModalSiswaTambah()">
                                 <i class='bx bx-plus'></i> Tambah Manual
                             </button>
                         </div>
@@ -521,10 +520,11 @@
     <div id="modal-siswa" class="modal">
         <div class="modal-content glass-panel">
             <div class="modal-header">
-                <h2>Tambah Data Siswa</h2>
+                <h2 id="modal-siswa-title">Tambah Data Siswa</h2>
                 <span class="close-modal" onclick="closeModal('modal-siswa')"><i class='bx bx-x'></i></span>
             </div>
             <form id="form-siswa">
+                <input type="hidden" id="edit-siswa-id">
                 <div class="form-group">
                     <label>Nama Siswa</label>
                     <input type="text" id="siswa-nama" required>
@@ -697,6 +697,12 @@
                         <option value="Mengerjakan Tugas">Mengerjakan Tugas</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
+                    <label style="margin-top: 10px; display: block; font-size: 14px; color: var(--text-color); font-weight: 500; margin-bottom: 5px;">Deskripsi Keperluan</label>
+                    <textarea id="kunjungan-deskripsi-laptop" placeholder="Tuliskan deskripsi keperluan menggunakan laptop..." rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255, 255, 255, 0.7); outline: none; transition: border-color 0.3s;"></textarea>
+                </div>
+                <div class="form-group" id="group-deskripsi-lainnya" style="display: none;">
+                    <label>Deskripsi Kunjungan</label>
+                    <textarea id="kunjungan-deskripsi-lainnya" placeholder="Tuliskan deskripsi atau keperluan kunjungan..." rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255, 255, 255, 0.7); outline: none; transition: border-color 0.3s;"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Tanggal</label>

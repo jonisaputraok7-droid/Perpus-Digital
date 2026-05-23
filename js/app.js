@@ -199,7 +199,7 @@ loginSiswaBtn.addEventListener('click', () => {
     showApp();
 });
 
-logoutBtn.addEventListener('click', (e) => {
+function handleLogout(e) {
     e.preventDefault();
     sessionStorage.removeItem('isLoggedIn');
     sessionStorage.removeItem('userRole');
@@ -208,7 +208,9 @@ logoutBtn.addEventListener('click', (e) => {
     appView.style.display = 'none';
     loginView.style.display = 'flex';
     loginView.classList.add('active');
-});
+}
+
+logoutBtn.addEventListener('click', handleLogout);
 
 function showApp() {
     loginView.style.display = 'none';
@@ -224,11 +226,13 @@ function showApp() {
 function checkRoleVisibility() {
     const role = sessionStorage.getItem('userRole');
     const adminOnlyElements = document.querySelectorAll('.admin-only');
+    const siswaOnlyElements = document.querySelectorAll('.siswa-only');
     const userNameEl = document.querySelector('.user-name');
     const userRoleEl = document.querySelector('.user-role');
 
     if (role === 'siswa') {
         adminOnlyElements.forEach(el => el.style.display = 'none');
+        siswaOnlyElements.forEach(el => el.style.display = 'flex');
         if (userNameEl) userNameEl.innerText = "Siswa Tamu";
         if (userRoleEl) userRoleEl.innerText = "Anggota";
 
@@ -239,6 +243,7 @@ function checkRoleVisibility() {
         }
     } else {
         adminOnlyElements.forEach(el => el.style.display = 'block');
+        siswaOnlyElements.forEach(el => el.style.display = 'none');
         if (userNameEl) userNameEl.innerText = "Administrator";
         if (userRoleEl) userRoleEl.innerText = "Pustakawan";
     }
@@ -307,9 +312,11 @@ function closeModal(id) {
 function toggleKunjunganDetails(val) {
     const groupLaptop = document.getElementById('group-keperluan-laptop');
     const groupBaca = document.getElementById('group-membaca-buku');
+    const groupLainnya = document.getElementById('group-deskripsi-lainnya');
     
     if (groupLaptop) groupLaptop.style.display = val === 'Menggunakan Laptop' ? 'block' : 'none';
     if (groupBaca) groupBaca.style.display = val === 'Membaca Buku' ? 'block' : 'none';
+    if (groupLainnya) groupLainnya.style.display = val === 'Lainnya' ? 'block' : 'none';
 }
 
 // Close modal on outside click
@@ -323,22 +330,36 @@ document.querySelectorAll('.modal').forEach(modal => {
 
 // --- Form Submissions (Tambah Manual) ---
 
-// Tambah Siswa
+// Tambah / Edit Siswa
 document.getElementById('form-siswa').addEventListener('submit', (e) => {
     e.preventDefault();
+    const editId = document.getElementById('edit-siswa-id').value;
     const nama = document.getElementById('siswa-nama').value;
     const kelas = document.getElementById('siswa-kelas').value;
 
-    appData.siswa.push({
-        id: Date.now(),
-        nama,
-        kelas
-    });
+    if (editId) {
+        // Mode Edit
+        const idx = appData.siswa.findIndex(s => s.id === parseInt(editId));
+        if (idx !== -1) {
+            appData.siswa[idx].nama = nama;
+            appData.siswa[idx].kelas = kelas;
+        }
+    } else {
+        // Mode Tambah
+        appData.siswa.push({
+            id: Date.now(),
+            nama,
+            kelas
+        });
+    }
 
     saveData();
     renderSiswa();
+    populateSelects();
     closeModal('modal-siswa');
     e.target.reset();
+    document.getElementById('edit-siswa-id').value = '';
+    document.getElementById('modal-siswa-title').innerText = 'Tambah Data Siswa';
 });
 
 // Tambah Buku
@@ -522,19 +543,25 @@ document.getElementById('form-kunjungan').addEventListener('submit', (e) => {
 
         const tujuan = document.getElementById('kunjungan-tujuan').value;
         const keperluanLaptop = document.getElementById('kunjungan-keperluan-laptop').value;
+        const deskripsiLaptop = document.getElementById('kunjungan-deskripsi-laptop').value.trim();
         const judulBuku = document.getElementById('kunjungan-judul-buku').value.trim();
         const manfaatBuku = document.getElementById('kunjungan-manfaat-buku').value.trim();
+        const deskripsiLainnya = document.getElementById('kunjungan-deskripsi-lainnya').value.trim();
         const tanggal = document.getElementById('kunjungan-tgl').value;
         const waktu = document.getElementById('kunjungan-waktu').value;
 
         // Tentukan detail tujuan
         let detailTujuan = "-";
         if (tujuan === "Menggunakan Laptop" && keperluanLaptop) {
-            detailTujuan = keperluanLaptop;
+            const displayKeperluan = `Keperluan: ${keperluanLaptop}`;
+            const displayDeskripsi = deskripsiLaptop ? `Deskripsi: ${deskripsiLaptop}` : "";
+            detailTujuan = [displayKeperluan, displayDeskripsi].filter(Boolean).join('<br>');
         } else if (tujuan === "Membaca Buku" && (judulBuku || manfaatBuku)) {
             const displayJudul = judulBuku ? `Judul: ${judulBuku}` : "";
             const displayManfaat = manfaatBuku ? `Manfaat: ${manfaatBuku}` : "";
             detailTujuan = [displayJudul, displayManfaat].filter(Boolean).join('<br>');
+        } else if (tujuan === "Lainnya" && deskripsiLainnya) {
+            detailTujuan = deskripsiLainnya;
         }
 
         const payload = {
@@ -584,7 +611,7 @@ function renderSiswa() {
                 <td><strong>${s.nama}</strong></td>
                 <td><span class="badge badge-success">${s.kelas}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline"><i class='bx bx-edit'></i></button>
+                    <button class="btn btn-sm btn-outline" onclick="editSiswa(${s.id})"><i class='bx bx-edit'></i></button>
                     <button class="btn btn-sm btn-danger" onclick="deleteSiswa(${s.id})"><i class='bx bx-trash'></i></button>
                 </td>
             </tr>
@@ -598,6 +625,24 @@ function deleteSiswa(id) {
         saveData();
         renderSiswa();
     }
+}
+
+function editSiswa(id) {
+    const s = appData.siswa.find(item => item.id === id);
+    if (s) {
+        document.getElementById('edit-siswa-id').value = s.id;
+        document.getElementById('siswa-nama').value = s.nama;
+        document.getElementById('siswa-kelas').value = s.kelas;
+        document.getElementById('modal-siswa-title').innerText = 'Edit Data Siswa';
+        openModal('modal-siswa');
+    }
+}
+
+function openModalSiswaTambah() {
+    document.getElementById('edit-siswa-id').value = '';
+    document.getElementById('form-siswa').reset();
+    document.getElementById('modal-siswa-title').innerText = 'Tambah Data Siswa';
+    openModal('modal-siswa');
 }
 
 function renderKunjungan() {
@@ -626,7 +671,7 @@ function renderKunjungan() {
             <button class="btn btn-sm btn-danger" onclick="deleteKunjungan(${k.id})" title="Hapus"><i class='bx bx-trash'></i></button>
         `;
 
-        if ((k.tujuan.includes('Laptop') || k.tujuan.includes('Membaca')) && !k.waktuSelesai) {
+        if ((k.tujuan.includes('Laptop') || k.tujuan.includes('Membaca') || k.tujuan === 'Lainnya') && !k.waktuSelesai) {
             actionButtons = `
                 <button class="btn btn-sm btn-success" onclick="selesaiKunjungan(${k.id})" title="Tandai Selesai" style="margin-right:4px;"><i class='bx bx-check'></i> Selesai</button>
                 ` + actionButtons;
@@ -663,11 +708,20 @@ function editKunjungan(id) {
 
         // Reset details first
         document.getElementById('kunjungan-keperluan-laptop').value = '';
+        document.getElementById('kunjungan-deskripsi-laptop').value = '';
         document.getElementById('kunjungan-judul-buku').value = '';
         document.getElementById('kunjungan-manfaat-buku').value = '';
+        document.getElementById('kunjungan-deskripsi-lainnya').value = '';
 
         if (k.tujuan === 'Menggunakan Laptop' && k.detailTujuan && k.detailTujuan !== '-') {
-            document.getElementById('kunjungan-keperluan-laptop').value = k.detailTujuan;
+            const parts = k.detailTujuan.split('<br>');
+            parts.forEach(part => {
+                if (part.startsWith('Keperluan: ')) {
+                    document.getElementById('kunjungan-keperluan-laptop').value = part.replace('Keperluan: ', '');
+                } else if (part.startsWith('Deskripsi: ')) {
+                    document.getElementById('kunjungan-deskripsi-laptop').value = part.replace('Deskripsi: ', '');
+                }
+            });
         } else if (k.tujuan === 'Membaca Buku' && k.detailTujuan && k.detailTujuan !== '-') {
             // Parse out Judul and Manfaat from <br>
             const parts = k.detailTujuan.split('<br>');
@@ -678,6 +732,8 @@ function editKunjungan(id) {
                     document.getElementById('kunjungan-manfaat-buku').value = part.replace('Manfaat: ', '');
                 }
             });
+        } else if (k.tujuan === 'Lainnya' && k.detailTujuan && k.detailTujuan !== '-') {
+            document.getElementById('kunjungan-deskripsi-lainnya').value = k.detailTujuan;
         }
 
         openModal('modal-kunjungan');
