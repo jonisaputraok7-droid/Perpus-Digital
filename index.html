@@ -1120,15 +1120,15 @@
                     <select id="kunjungan-siswa"></select>
                 </div>
                 <div class="form-group">
-                    <label>Atau Input Nama Siswa Manual</label>
+                    <label>Atau Input Nama Siswa Manual <span style="color: var(--danger-color);">*</span></label>
                     <input type="text" id="kunjungan-siswa-manual" placeholder="Ketik nama siswa...">
                 </div>
                 <div class="form-group">
-                    <label>Kelas (Siswa Manual, contoh: 7C)</label>
+                    <label>Kelas (Siswa Manual, contoh: 7C) <span style="color: var(--danger-color);">*</span></label>
                     <input type="text" id="kunjungan-kelas-manual" placeholder="Ketik kelas...">
                 </div>
                 <div class="form-group">
-                    <label>Tujuan Kunjungan</label>
+                    <label>Tujuan Kunjungan <span style="color: var(--danger-color);">*</span></label>
                     <select id="kunjungan-tujuan" required onchange="toggleKunjunganDetails(this.value)">
                         <option value="">-- Pilih Tujuan --</option>
                         <option value="Membaca Buku">Membaca Buku</option>
@@ -1138,13 +1138,13 @@
                     </select>
                 </div>
                 <div class="form-group" id="group-membaca-buku" style="display: none;">
-                    <label>Judul Buku yang Dibaca</label>
+                    <label>Judul Buku yang Dibaca <span style="color: var(--danger-color);">*</span></label>
                     <input type="text" id="kunjungan-judul-buku" placeholder="Ketik judul buku...">
-                    <label style="margin-top: 10px; display: block; font-size: 14px; color: var(--text-color); font-weight: 500; margin-bottom: 5px;">Manfaat / Intisari Buku</label>
+                    <label style="margin-top: 10px; display: block; font-size: 14px; color: var(--text-color); font-weight: 500; margin-bottom: 5px;">Manfaat / Intisari Buku <span style="color: var(--danger-color);">*</span></label>
                     <textarea id="kunjungan-manfaat-buku" placeholder="Tuliskan manfaat atau intisari dari buku yang dibaca..." rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255, 255, 255, 0.7); outline: none; transition: border-color 0.3s;"></textarea>
                 </div>
                 <div class="form-group" id="group-keperluan-laptop" style="display: none;">
-                    <label>Keperluan Menggunakan Laptop</label>
+                    <label>Keperluan Menggunakan Laptop <span style="color: var(--danger-color);">*</span></label>
                     <select id="kunjungan-keperluan-laptop">
                         <option value="">-- Pilih Keperluan --</option>
                         <option value="Browsing/Internet">Browsing / Internet</option>
@@ -1152,11 +1152,11 @@
                         <option value="Mengerjakan Tugas">Mengerjakan Tugas</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
-                    <label style="margin-top: 10px; display: block; font-size: 14px; color: var(--text-color); font-weight: 500; margin-bottom: 5px;">Deskripsi Keperluan</label>
+                    <label style="margin-top: 10px; display: block; font-size: 14px; color: var(--text-color); font-weight: 500; margin-bottom: 5px;">Deskripsi Keperluan <span style="color: var(--danger-color);">*</span></label>
                     <textarea id="kunjungan-deskripsi-laptop" placeholder="Tuliskan deskripsi keperluan menggunakan laptop..." rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255, 255, 255, 0.7); outline: none; transition: border-color 0.3s;"></textarea>
                 </div>
                 <div class="form-group" id="group-deskripsi-lainnya" style="display: none;">
-                    <label>Deskripsi Kunjungan</label>
+                    <label>Deskripsi Kunjungan <span style="color: var(--danger-color);">*</span></label>
                     <textarea id="kunjungan-deskripsi-lainnya" placeholder="Tuliskan deskripsi atau keperluan kunjungan..." rows="3" style="width: 100%; padding: 10px 15px; border: 1px solid #ced4da; border-radius: 8px; font-family: inherit; font-size: 14px; background: rgba(255, 255, 255, 0.7); outline: none; transition: border-color 0.3s;"></textarea>
                 </div>
                 <div class="form-group">

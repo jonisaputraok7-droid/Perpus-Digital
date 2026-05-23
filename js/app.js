@@ -585,6 +585,12 @@ document.getElementById('form-kunjungan').addEventListener('submit', (e) => {
             return;
         }
 
+        // Jika input manual siswa, wajib mengisi kelas manual
+        if (!siswaId && siswaManual && !kelasManual) {
+            alert('Silakan isi kelas untuk siswa manual.');
+            return;
+        }
+
         // Jika input manual siswa, tambahkan ke data siswa dulu
         if (!siswaId && siswaManual) {
             const newSiswa = {
@@ -606,6 +612,38 @@ document.getElementById('form-kunjungan').addEventListener('submit', (e) => {
         const deskripsiLainnya = document.getElementById('kunjungan-deskripsi-lainnya').value.trim();
         const tanggal = document.getElementById('kunjungan-tgl').value;
         const waktu = document.getElementById('kunjungan-waktu').value;
+
+        // Validasi tujuan kunjungan
+        if (!tujuan) {
+            alert('Silakan pilih tujuan kunjungan.');
+            return;
+        }
+
+        // Validasi field wajib berdasarkan tujuan kunjungan
+        if (tujuan === "Membaca Buku") {
+            if (!judulBuku) {
+                alert('Silakan isi judul buku yang dibaca.');
+                return;
+            }
+            if (!manfaatBuku) {
+                alert('Silakan isi manfaat / intisari buku.');
+                return;
+            }
+        } else if (tujuan === "Menggunakan Laptop") {
+            if (!keperluanLaptop) {
+                alert('Silakan pilih keperluan menggunakan laptop.');
+                return;
+            }
+            if (!deskripsiLaptop) {
+                alert('Silakan isi deskripsi keperluan menggunakan laptop.');
+                return;
+            }
+        } else if (tujuan === "Lainnya") {
+            if (!deskripsiLainnya) {
+                alert('Silakan isi deskripsi kunjungan.');
+                return;
+            }
+        }
 
         // Tentukan detail tujuan
         let detailTujuan = "-";
