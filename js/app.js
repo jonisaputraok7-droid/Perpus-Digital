@@ -965,14 +965,15 @@ function renderPeminjaman() {
         tbody.innerHTML += `
             <tr>
                 <td>${idx + 1}</td>
+                <td>${siswa.nama} <br><small>(${siswa.kelas})</small></td>
+                <td>${p.tglPinjam}</td>
                 <td><strong>${buku.judul}</strong></td>
                 <td>${buku.pengarang}</td>
                 <td>${buku.penerbit}</td>
                 <td>${buku.tahun}</td>
                 <td>${p.jumlah}</td>
-                <td>${p.tglPinjam}</td>
-                <td>${p.tglKembaliRencana} <br> <span class="badge ${statusClass}">${p.status}</span></td>
-                <td>${siswa.nama} <br><small>(${siswa.kelas})</small></td>
+                <td>${p.tglKembaliRencana}</td>
+                <td><span class="badge ${statusClass}">${p.status}</span></td>
                 <td>
                     <button class="btn btn-sm btn-outline" onclick="editPeminjaman(${p.id})"><i class='bx bx-edit'></i></button>
                     <button class="btn btn-sm btn-danger" onclick="deletePeminjaman(${p.id})"><i class='bx bx-trash'></i></button>
