@@ -791,8 +791,18 @@ function deleteBuku(id) {
 
 function renderPeminjaman() {
     const tbody = document.querySelector('#table-peminjaman tbody');
+    if (!tbody) return;
     tbody.innerHTML = '';
-    appData.peminjaman.forEach((p, idx) => {
+    
+    const filterStatusEl = document.getElementById('filter-status-peminjaman');
+    const filterStatus = filterStatusEl ? filterStatusEl.value : 'Semua';
+    
+    let filteredData = appData.peminjaman;
+    if (filterStatus !== 'Semua') {
+        filteredData = appData.peminjaman.filter(p => p.status === filterStatus);
+    }
+
+    filteredData.forEach((p, idx) => {
         const buku = getBuku(p.bukuId);
         const siswa = getSiswa(p.siswaId);
         const statusClass = p.status === 'Dipinjam' ? 'badge-warning' : 'badge-success';

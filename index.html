@@ -304,6 +304,11 @@
                             <p>Catatan transaksi peminjaman buku</p>
                         </div>
                         <div class="action-buttons">
+                            <select id="filter-status-peminjaman" class="filter-select" onchange="renderPeminjaman()">
+                                <option value="Semua">Semua Status</option>
+                                <option value="Dipinjam">Sedang Dipinjam</option>
+                                <option value="Dikembalikan">Sudah Dikembalikan</option>
+                            </select>
                             <button class="btn btn-outline"
                                 onclick="downloadExcel('table-peminjaman', 'Laporan_Peminjaman')">
                                 <i class='bx bx-download'></i> Unduh Excel
