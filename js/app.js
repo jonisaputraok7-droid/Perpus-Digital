@@ -395,7 +395,8 @@ document.getElementById('form-buku-induk').addEventListener('submit', (e) => {
         penerbit: document.getElementById('buku-induk-penerbit').value,
         tahun: document.getElementById('buku-induk-tahun').value,
         asal: document.getElementById('buku-induk-asal').value,
-        harga: document.getElementById('buku-induk-harga').value
+        harga: document.getElementById('buku-induk-harga').value,
+        keterangan: document.getElementById('buku-induk-keterangan').value
     };
 
     if (editId) {
@@ -848,9 +849,11 @@ function renderBukuInduk() {
                 <td>${b.tglTerima}</td>
                 <td><strong>${b.judul}</strong></td>
                 <td>${b.pengarang}</td>
-                <td>${b.penerbit} (${b.tahun})</td>
+                <td>${b.penerbit}</td>
+                <td>${b.tahun}</td>
                 <td>${b.asal}</td>
                 <td>${hargaFormatted}</td>
+                <td>${b.keterangan || '-'}</td>
                 <td>
                     <button class="btn btn-sm btn-outline" onclick="editBukuInduk(${b.id})" title="Edit"><i class='bx bx-edit'></i></button>
                     <button class="btn btn-sm btn-danger" onclick="deleteBukuInduk(${b.id})" title="Hapus"><i class='bx bx-trash'></i></button>
@@ -880,6 +883,7 @@ function editBukuInduk(id) {
         document.getElementById('buku-induk-tahun').value = b.tahun;
         document.getElementById('buku-induk-asal').value = b.asal;
         document.getElementById('buku-induk-harga').value = b.harga || 0;
+        document.getElementById('buku-induk-keterangan').value = b.keterangan || '';
         document.getElementById('modal-buku-induk-title').innerText = 'Edit Buku Induk';
         openModal('modal-buku-induk');
     }
